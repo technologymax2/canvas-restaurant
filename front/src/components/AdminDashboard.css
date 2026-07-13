@@ -1,0 +1,563 @@
+/* ==========================================================================
+   💎 MAX TECHNOLOGY PREMIUM ADMIN DASHBOARD - MODERN DARK THEME
+   ========================================================================== */
+
+:root {
+  --bg-main: #0d0f12;
+  --bg-card: #161b22;
+  --bg-sidebar: #12161c;
+  --primary-gold: #ffd700;
+  --primary-glow: rgba(255, 215, 0, 0.15);
+  --text-main: #f0f6fc;
+  --text-muted: #8b949e;
+  --border-color: #30363d;
+  --active-blue: #1f6feb;
+  --success-green: #238636;
+  --danger-red: #da3633;
+  --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 🧱 ዋናው አካል */
+.admin-dashboard-container {
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  min-height: 100vh;
+  padding: 30px;
+  font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  box-sizing: border-box;
+}
+
+/* 🔝 የላይኛው ራስጌ (Header) */
+.admin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(135deg, var(--bg-card), #1f242c);
+  padding: 20px 30px;
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  margin-bottom: 30px;
+}
+
+.admin-header h2 {
+  font-size: 26px;
+  font-weight: 700;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+}
+
+/* 🗂️ ታብ ማውጫ (Tab Navigation) */
+.admin-tabs-nav {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 30px;
+  border-bottom: 2px solid var(--border-color);
+  padding-bottom: 12px;
+}
+
+.tab-nav-btn {
+  background: transparent;
+  color: var(--text-muted);
+  border: none;
+  padding: 12px 24px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 10px;
+  transition: var(--transition-smooth);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.tab-nav-btn:hover {
+  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.tab-nav-btn.active-tab {
+  color: var(--bg-main);
+  background: linear-gradient(135deg, var(--primary-gold), #e6c200);
+  font-weight: 700;
+  box-shadow: 0 0 15px var(--primary-glow);
+}
+
+/* 📣 የክፍል አርዕስት */
+.admin-section-heading {
+  font-size: 20px;
+  color: #ffffff;
+  margin-bottom: 20px;
+  font-weight: 600;
+}
+
+/* ==========================================================================
+   💬 🛩️ የቴሌግራም ስታይል ስንጥቅ እይታ (TELEGRAM SPLIT MODE)
+   ========================================================================== */
+.telegram-admin-layout {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  background-color: var(--bg-sidebar);
+  border-radius: 20px;
+  border: 1px solid var(--border-color);
+  overflow: hidden;
+  height: 680px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+}
+
+/* 👥 የግራ ሳይድባር */
+.telegram-sidebar {
+  border-right: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  background-color: #11151a;
+}
+
+.sidebar-header {
+  padding: 20px;
+  font-weight: 700;
+  font-size: 16px;
+  background-color: rgba(0, 0, 0, 0.2);
+  border-bottom: 1px solid var(--border-color);
+  color: var(--primary-gold);
+  letter-spacing: 0.5px;
+}
+
+.sidebar-users-list {
+  overflow-y: auto;
+  flex: 1;
+}
+
+.sidebar-user-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 16px 20px;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(48, 54, 61, 0.4);
+  transition: var(--transition-smooth);
+}
+
+.sidebar-user-item:hover {
+  background-color: rgba(255, 255, 255, 0.03);
+}
+
+.sidebar-user-item.active-chat-user {
+  background: linear-gradient(90deg, rgba(31, 111, 235, 0.15), transparent);
+  border-left: 4px solid var(--active-blue);
+}
+
+.sidebar-avatar {
+  background: linear-gradient(135deg, #233044, #1f2d3d);
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 18px;
+  border: 1px solid var(--border-color);
+}
+
+.sidebar-user-details h4 {
+  margin: 0 0 4px 0;
+  font-size: 15px;
+  color: #ffffff;
+}
+
+.sidebar-user-details p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* ✉️ የቀኝ ክፍል ቻት መክፈቻ */
+.telegram-chat-window {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg-card);
+  background-image: radial-gradient(rgba(255, 255, 255, 0.01) 1px, transparent 0);
+  background-size: 24px 24px;
+}
+
+.chat-window-header {
+  padding: 20px 25px;
+  background-color: rgba(22, 27, 34, 0.8);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border-color);
+  font-size: 16px;
+  color: #ffffff;
+}
+
+.chat-window-body {
+  flex: 1;
+  padding: 25px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* 💬 የቻት ባብሎች (Chat Bubbles) */
+.admin-chat-block {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 85%;
+}
+
+.admin-user-msg-bubble {
+  background-color: #21262d;
+  padding: 16px 20px;
+  border-radius: 4px 18px 18px 18px;
+  align-self: flex-start;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.admin-user-msg-bubble p {
+  margin: 0 0 6px 0;
+  font-size: 15px;
+  line-height: 1.5;
+  color: #f0f6fc;
+}
+
+.chat-block-time {
+  font-size: 11px;
+  color: var(--text-muted);
+  display: block;
+}
+
+.admin-reply-msg-bubble {
+  background: linear-gradient(135deg, #1f4275, #162f55);
+  padding: 16px 20px;
+  border-radius: 18px 4px 18px 18px;
+  align-self: flex-end;
+  margin-left: auto;
+  border: 1px solid #2f5a94;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  max-width: 90%;
+}
+
+.reply-label {
+  font-size: 12px;
+  color: var(--primary-gold);
+  font-weight: 600;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.admin-reply-msg-bubble p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+/* 🗑️ የመልዕክት ማጥፊያ */
+.admin-msg-delete-row {
+  display: flex;
+  justify-content: flex-start;
+  margin-top: -4px;
+}
+
+.admin-delete-msg-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 12px;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+}
+
+.admin-delete-msg-btn:hover {
+  color: var(--danger-red);
+  text-decoration: underline;
+}
+
+/* ==========================================================================
+   📊 ካርዶች እና ፎርሞች (CARDS & FORMS)
+   ========================================================================== */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 30px;
+}
+
+.card {
+  background-color: var(--bg-card);
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
+  padding: 25px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+}
+
+.card h3 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  font-size: 18px;
+  color: #ffffff;
+  border-left: 4px solid var(--primary-gold);
+  padding-left: 10px;
+}
+
+.input-field {
+  width: 100%;
+  padding: 12px 16px;
+  background-color: var(--bg-main);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: #ffffff;
+  font-size: 15px;
+  box-sizing: border-box;
+  transition: var(--transition-smooth);
+}
+
+.input-field:focus {
+  outline: none;
+  border-color: var(--primary-gold);
+  box-shadow: 0 0 8px rgba(255, 215, 0, 0.2);
+}
+
+.admin-input-bottom {
+  margin-bottom: 15px;
+}
+
+.submit-btn {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, var(--primary-gold), #e6c200);
+  color: var(--bg-main);
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+}
+
+.submit-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3);
+}
+
+/* ==========================================================================
+   📋 ዘመናዊ ሰንጠረዦች (MODERN TABLES)
+   ========================================================================== */
+.custom-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+  text-align: left;
+}
+
+.custom-table th {
+  background-color: rgba(0, 0, 0, 0.3);
+  color: var(--primary-gold);
+  padding: 16px;
+  font-weight: 600;
+  font-size: 14px;
+  border-bottom: 2px solid var(--border-color);
+}
+
+.custom-table td {
+  padding: 16px;
+  border-bottom: 1px solid rgba(48, 54, 61, 0.6);
+  font-size: 14px;
+  color: #e2e8f0;
+}
+
+.custom-table tr:hover {
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+/* 🏷️ ባጆች (Status Badges) */
+.status-badge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-block;
+}
+
+.badge-active {
+  background-color: rgba(35, 134, 54, 0.15);
+  color: #56d364;
+  border: 1px solid rgba(53, 222, 87, 0.3);
+}
+
+.badge-blocked {
+  background-color: rgba(218, 54, 51, 0.15);
+  color: #ff7b72;
+  border: 1px solid rgba(248, 81, 73, 0.3);
+}
+
+/* 🔘 የተግባር ቁልፎች (Action Buttons) */
+.admin-inline-flex {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.btn-action {
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+}
+
+.btn-logout {
+  background-color: transparent;
+  color: #ff7b72;
+  border: 1px solid var(--danger-red);
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+}
+
+.btn-logout:hover {
+  background-color: var(--danger-red);
+  color: #ffffff;
+}
+
+.btn-block-action {
+  background-color: rgba(218, 54, 51, 0.2);
+  color: #ff7b72;
+  border: 1px solid var(--danger-red);
+}
+
+.btn-block-action:hover {
+  background-color: var(--danger-red);
+  color: white;
+}
+
+.btn-unblock {
+  background-color: rgba(35, 134, 54, 0.2);
+  color: #56d364;
+  border: 1px solid var(--success-green);
+}
+
+.btn-unblock:hover {
+  background-color: var(--success-green);
+  color: white;
+}
+
+.btn-delete {
+  background-color: #21262d;
+  color: #f0f6fc;
+  border: 1px solid var(--border-color);
+}
+
+.btn-delete:hover {
+  background-color: var(--danger-red);
+  border-color: var(--danger-red);
+  color: white;
+}
+
+/* ==========================================================================
+   🔲 ሞዳል ወይም ፖፕአፕ (MODAL OVERLAY)
+   ========================================================================== */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(5px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  padding: 30px;
+  border-radius: 16px;
+  width: 400px;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6);
+}
+
+/* 📱 ምላሽ ሰጪ አካል (Responsive Media Queries) */
+@media (max-width: 900px) {
+  .telegram-admin-layout {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+  .telegram-sidebar {
+    height: 250px;
+  }
+  .admin-header {
+    flex-direction: column;
+    gap: 15px;
+    text-align: center;
+  }
+}
+/* 🚀 የፖርትፎሊዮ ካርድ ስታይል */
+.portfolio-card-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.portfolio-item {
+  background-color: var(--bg-sidebar);
+  border: 1px solid var(--border-color);
+  padding: 15px;
+  border-radius: 12px;
+  transition: var(--transition-smooth);
+}
+
+.portfolio-item:hover {
+  border-color: var(--primary-gold);
+}
+
+.portfolio-item img {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+/* የቻት መስኮቱ መያዣ - አጠቃላይ ቁመቱን እንገድበዋለን */
+.telegram-chat-window {
+  position: relative; /* ይህ ለውስጥ መጻፊያው ወሳኝ ነው */
+  display: flex;
+  flex-direction: column;
+  height: 500px; /* እንደ ፍላጎትህ መጠን አስተካክለው (ለምሳሌ 500px ወይም 70vh) */
+  background: #0d0f12;
+  border-left: 1px solid #30363d;
+  overflow: hidden; /* የቻት ኤሪያው እንዳይበላሽ */
+}
+
+/* የቻት መልዕክቶች የሚታዩበት ዋና ክፍል */
+.chat-window-body {
+  flex: 1; /* የቀረውን ቦታ በሙሉ ይያዝ */
+  overflow-y: auto; /* መልዕክቶች ሲበዙ እንዲሽከረከር (scroll) ያደርጋል */
+  padding: 20px;
+}
+
+/* የመጻፊያ ሳጥኑ - ከቻት መስኮቱ ግርጌ ተጣብቆ እንዲቀመጥ */
+.admin-chat-footer-input {
+  position: absolute; /* ከወላጅ ኮንቴይነር ጋር ይጣበቃል */
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #161b22;
+  border-top: 1px solid #30363d;
+  padding: 15px;
+  display: flex;
+  gap: 10px;
+  z-index: 10;
+} 
