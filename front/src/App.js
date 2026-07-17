@@ -7,7 +7,7 @@ import logoImg from './logo.jpg';
 import './App.css';
 
 function App() {
-  const API_BASE_URL = 'https://max-tech-backend.onrender.com';
+  const API_BASE_URL = 'https://canvas-restaurant.onrender.com';
 
   const [currentScreen, setCurrentScreen] = useState('home');
   const [user, setUser] = useState(null);
