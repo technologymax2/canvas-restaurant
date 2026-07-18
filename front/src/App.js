@@ -210,7 +210,7 @@ function App() {
             <img src={logoImg} alt="Logo"/>
 
             <span>
-              Max Technology
+             Canvas-Restaurant
             </span>
           </div>
 
@@ -235,11 +235,10 @@ function App() {
           </div>
         </nav>
         <header>
-          <h1>እንኳን ወደ Max Technology በሰላም መጡ!</h1>
+          <h1>እንኳን ወደ Canvas-Restaurant በሰላም መጡ!</h1>
 
           <p>
-            እኛ የድርጅትዎን ስራ የሚያቀል ድህረ-ገጾችን
-            እና ሲስተሞችን እንሰራለን።
+           ምን ይፈልጋሉ? ሁሉም እኛ ጋር ዪገኛል
           </p>
 
           <button
