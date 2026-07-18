@@ -120,9 +120,14 @@ app.post('/api/auth/signup', async (req, res) => {
 
     await newUser.save();
     res.status(201).json({ success: true, message: 'ምዝገባው በስኬት ተጠናቋል!' });
-  } catch (error) {
-    res.status(500).json({ success: false, error: 'የምዝገባ ስህተት ተፈጥሯል' });
-  }
+  }catch (error) {
+  console.error("SIGNUP ERROR:", error);
+
+  res.status(500).json({
+    success: false,
+    error: error.message
+  });
+}
 });
 
 // ለ. ተጠቃሚዎች መግቢያ (LOGIN) - (የታገዱ ሰዎችን ይከለክላል)
