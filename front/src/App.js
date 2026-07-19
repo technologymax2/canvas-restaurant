@@ -135,13 +135,20 @@ function App() {
   </div>
 </nav>
 
-        <header className="flex-grow flex flex-col justify-center items-center text-center p-10 bg-gradient-to-b from-gray-900 to-gray-800 text-white">
-          <h1 className="text-5xl font-extrabold mb-4">እንኳን ወደ Canvas-Restaurant በሰላም መጡ!</h1>
-          <p className="text-xl mb-8 text-gray-300">ምን ይፈልጋሉ? ሁሉም እኛ ጋር ይገኛል</p>
-          <button onClick={() => setCurrentScreen('login')} className="bg-yellow-500 text-black px-10 py-4 rounded-full text-lg font-bold hover:scale-105 transition transform">
-            አሁኑኑ ይዘዙን!
-          </button>
-        </header>
+     <header className="flex-grow flex flex-col justify-center items-center text-center p-6 md:p-10 bg-gradient-to-b from-gray-900 to-gray-800 text-white min-h-[50vh]">
+  <h1 className="text-3xl md:text-5xl font-extrabold mb-4 leading-tight">
+    እንኳን ወደ Canvas-Restaurant በሰላም መጡ!
+  </h1>
+  <p className="text-lg md:text-xl mb-6 md:mb-8 text-gray-300">
+    ምን ይፈልጋሉ? ሁሉም እኛ ጋር ይገኛል
+  </p>
+  <button 
+    onClick={() => setCurrentScreen('login')} 
+    className="bg-yellow-500 text-black px-8 py-3 md:px-10 md:py-4 rounded-full text-base md:text-lg font-bold hover:scale-105 transition transform"
+  >
+    አሁኑኑ ይዘዙን!
+  </button>
+</header>
 
         <div className="p-10 grid grid-cols-1 md:grid-cols-3 gap-8">
           {projects.map((p) => (
