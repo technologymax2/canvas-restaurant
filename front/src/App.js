@@ -6,30 +6,23 @@ import ContactUs from './components/ContactUs';
 import Cart from './components/Cart';
 import OurFoods from './components/OurFoods';
 import Login from './components/Login';
-import logoImg from './CanvasLogo2.png';
+import AdminDashboard from './components/AdminDashboard'; // Assuming you have this
 import EmployeeDashboard from './components/EmployeeDashboard';
+import logoImg from './CanvasLogo2.png';
 
 function App() {
   const [currentScreen, setCurrentScreen] = useState('home');
   const [cart, setCart] = useState([]);
-  const [authMode, setAuthMode] = useState('login'); // 'login' or 'signup'
-  const [authForm, setAuthForm] = useState({ name: '', email: '', password: '' });
-  const [authStatus, setAuthStatus] = useState('');
+  const [user, setUser] = useState(null); // Stores user info: { name, role, ... }
 
   const addToCart = (item) => {
     setCart([...cart, item]);
     alert(`${item.title} ወደ ካርታ ተጨምሯል!`);
   };
 
-  const handleAuthChange = (e) => {
-    setAuthForm({ ...authForm, [e.target.name]: e.target.value });
-  };
-
-  const handleAuthSubmit = async (e) => {
-    e.preventDefault();
-    // Logic for API call would go here
-    setAuthStatus(`${authMode === 'login' ? 'Logging in' : 'Signing up'}...`);
-    console.log("Submitting:", authMode, authForm);
+  const handleLogout = () => {
+    setUser(null);
+    setCurrentScreen('home');
   };
 
   const Navbar = () => (
@@ -44,7 +37,15 @@ function App() {
         <button onClick={() => setCurrentScreen('menu')}>Menu</button>
         <button onClick={() => setCurrentScreen('our-foods')}>Our Foods</button>
         <button onClick={() => setCurrentScreen('contact')}>Contact</button>
-        <button onClick={() => setCurrentScreen('login')} className="font-bold text-blue-600">Login</button>
+        
+        {user ? (
+          <button onClick={() => setCurrentScreen(user.role === 'admin' ? 'admin-dashboard' : 'employee-dashboard')} className="font-bold text-green-600">
+            Dashboard
+          </button>
+        ) : (
+          <button onClick={() => setCurrentScreen('login')} className="font-bold text-blue-600">Login</button>
+        )}
+        
         <button onClick={() => setCurrentScreen('cart')} className="bg-yellow-500 px-4 py-1 rounded-full font-bold">
           Cart ({cart.length})
         </button>
@@ -62,17 +63,17 @@ function App() {
         {currentScreen === 'order' && <Order />}
         {currentScreen === 'contact' && <ContactUs />}
         {currentScreen === 'cart' && <Cart cart={cart} />}
-{currentScreen === 'employee-dashboard' && <EmployeeDashboard />}
+        
+        {/* Role-Based Dashboard Routing */}
+        {currentScreen === 'admin-dashboard' && user?.role === 'admin' && (
+            <AdminDashboard handleLogout={handleLogout} />
+        )}
+        {currentScreen === 'employee-dashboard' && user?.role === 'employee' && (
+            <EmployeeDashboard handleLogout={handleLogout} />
+        )}
+
         {currentScreen === 'login' && (
-          <Login 
-            authMode={authMode} 
-            setAuthMode={setAuthMode} 
-            authForm={authForm}
-            handleAuthChange={handleAuthChange}
-            handleAuthSubmit={handleAuthSubmit}
-            authStatus={authStatus}
-            logoImg={logoImg}
-          />
+          <Login setUser={setUser} setCurrentScreen={setCurrentScreen} />
         )}
       </main>
     </div>
