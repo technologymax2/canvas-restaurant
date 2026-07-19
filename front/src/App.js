@@ -7,7 +7,7 @@ import Cart from './components/Cart';
 import OurFoods from './components/OurFoods';
 import Login from './components/Login';
 import logoImg from './CanvasLogo2.png';
-import EmployeeDashboard from './EmployeeDashboard';
+import EmployeeDashboard from './components/EmployeeDashboard';
 
 function App() {
   const [currentScreen, setCurrentScreen] = useState('home');
