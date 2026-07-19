@@ -62,7 +62,7 @@ function Login({
           </form>
 
           {authStatus && (
-            <p className="mt-4 text-center text-red-600 font-medium">
+            <p className={`mt-4 text-center font-medium ${authStatus.includes('successfully') ? 'text-green-600' : 'text-red-600'}`}>
               {authStatus}
             </p>
           )}
