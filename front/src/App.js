@@ -4,6 +4,7 @@ import AdminDashboard from './components/AdminDashboard';
 import OrderPage from './components/OrderPage';
 import Footer from './components/Footer';
 import logoImg from './CanvasLogo2.png'; 
+import heroBg from './bacggroundForCanvas.jpg';
 
 function App() {
   const API_BASE_URL = 'https://canvas-restaurant.onrender.com';
@@ -138,12 +139,12 @@ function App() {
   
 <header 
   className="flex-grow flex flex-col justify-center items-center text-center p-6 md:p-10 text-white min-h-[60vh] relative bg-cover bg-center bg-no-repeat"
-  style={{ backgroundImage: `url(${process.env.PUBLIC_URL}/bacggroundForCanvas.jpg)` }} 
+  style={{ backgroundImage: `url(${heroBg})` }} // Use the variable here
 >
   {/* Dark overlay for readability */}
   <div className="absolute inset-0 bg-black opacity-60"></div>
 
-  {/* Content */}
+  {/* Content remains the same */}
   <h1 className="text-4xl md:text-6xl font-extrabold mb-4 leading-tight relative z-10 drop-shadow-lg">
     እንኳን ወደ Canvas-Restaurant በሰላም መጡ!
   </h1>
