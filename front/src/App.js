@@ -5,7 +5,7 @@ import Order from './components/Order';
 import ContactUs from './components/ContactUs';
 import Cart from './components/Cart';
 import OurFoods from './components/OurFoods';
-import logoImg from './components/CanvasLogo2.png'; // Import here
+import logoImg from '../CanvasLogo2.png'; // Import here
 
 function App() {
   const [currentScreen, setCurrentScreen] = useState('home');
