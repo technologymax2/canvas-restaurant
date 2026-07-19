@@ -10,8 +10,8 @@ import AdminDashboard from './components/AdminDashboard';
 import EmployeeDashboard from './components/EmployeeDashboard';
 import logoImg from './CanvasLogo2.png';
 
-// Change this to your actual backend URL
-const API_BASE_URL = 'http://localhost:5000'; 
+// Updated to your live Render backend URL
+const API_BASE_URL = 'https://canvas-restaurant.onrender.com'; 
 
 function App() {
   const [currentScreen, setCurrentScreen] = useState('home');
@@ -40,7 +40,8 @@ function App() {
     setAuthStatus('Logging in...');
 
     try {
-      const endpoint = authMode === 'login' ? '/api/login' : '/api/signup';
+      // UPDATED: Routes match your server.js (/api/auth/...)
+      const endpoint = authMode === 'login' ? '/api/auth/login' : '/api/auth/signup';
       const res = await fetch(`${API_BASE_URL}${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -60,7 +61,8 @@ function App() {
         }
         setAuthStatus('');
       } else {
-        setAuthStatus(data.message || 'Login failed');
+        // UPDATED: Backend returns 'error', fixed to show correct message
+        setAuthStatus(data.error || 'Login failed');
       }
     } catch (err) {
       setAuthStatus('Server error. Please try again.');
