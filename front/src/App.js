@@ -5,16 +5,30 @@ import Order from './components/Order';
 import ContactUs from './components/ContactUs';
 import Cart from './components/Cart';
 import OurFoods from './components/OurFoods';
-import Login from './components/Login'; // 1. Import Login
+import Login from './components/Login';
 import logoImg from './CanvasLogo2.png';
 
 function App() {
   const [currentScreen, setCurrentScreen] = useState('home');
   const [cart, setCart] = useState([]);
+  const [authMode, setAuthMode] = useState('login'); // 'login' or 'signup'
+  const [authForm, setAuthForm] = useState({ name: '', email: '', password: '' });
+  const [authStatus, setAuthStatus] = useState('');
 
   const addToCart = (item) => {
     setCart([...cart, item]);
     alert(`${item.title} ወደ ካርታ ተጨምሯል!`);
+  };
+
+  const handleAuthChange = (e) => {
+    setAuthForm({ ...authForm, [e.target.name]: e.target.value });
+  };
+
+  const handleAuthSubmit = async (e) => {
+    e.preventDefault();
+    // Logic for API call would go here
+    setAuthStatus(`${authMode === 'login' ? 'Logging in' : 'Signing up'}...`);
+    console.log("Submitting:", authMode, authForm);
   };
 
   const Navbar = () => (
@@ -29,7 +43,6 @@ function App() {
         <button onClick={() => setCurrentScreen('menu')}>Menu</button>
         <button onClick={() => setCurrentScreen('our-foods')}>Our Foods</button>
         <button onClick={() => setCurrentScreen('contact')}>Contact</button>
-        {/* 2. Added Login link to Navbar */}
         <button onClick={() => setCurrentScreen('login')} className="font-bold text-blue-600">Login</button>
         <button onClick={() => setCurrentScreen('cart')} className="bg-yellow-500 px-4 py-1 rounded-full font-bold">
           Cart ({cart.length})
@@ -48,13 +61,15 @@ function App() {
         {currentScreen === 'order' && <Order />}
         {currentScreen === 'contact' && <ContactUs />}
         {currentScreen === 'cart' && <Cart cart={cart} />}
-        {/* 3. Added Login screen render logic */}
         {currentScreen === 'login' && (
           <Login 
-            authMode="login" 
-            setAuthMode={setCurrentScreen} 
+            authMode={authMode} 
+            setAuthMode={setAuthMode} 
+            authForm={authForm}
+            handleAuthChange={handleAuthChange}
+            handleAuthSubmit={handleAuthSubmit}
+            authStatus={authStatus}
             logoImg={logoImg}
-            // You will need to pass your auth handlers here from App.js state
           />
         )}
       </main>
