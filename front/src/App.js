@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Home from './components/Home';
 import FoodMenu from './components/FoodMenu';
 import Order from './components/Order';
@@ -6,14 +6,24 @@ import ContactUs from './components/ContactUs';
 import Cart from './components/Cart';
 import OurFoods from './components/OurFoods';
 import Login from './components/Login';
-import AdminDashboard from './components/AdminDashboard'; // Assuming you have this
+import AdminDashboard from './components/AdminDashboard';
 import EmployeeDashboard from './components/EmployeeDashboard';
 import logoImg from './CanvasLogo2.png';
 
 function App() {
   const [currentScreen, setCurrentScreen] = useState('home');
   const [cart, setCart] = useState([]);
-  const [user, setUser] = useState(null); // Stores user info: { name, role, ... }
+  const [user, setUser] = useState(null); 
+
+  // Guard: If a user is not authorized for the current screen, redirect them
+  useEffect(() => {
+    if (currentScreen === 'admin-dashboard' && user?.role !== 'admin') {
+      setCurrentScreen(user ? 'employee-dashboard' : 'login');
+    }
+    if (currentScreen === 'employee-dashboard' && user?.role !== 'employee') {
+      setCurrentScreen(user ? 'admin-dashboard' : 'login');
+    }
+  }, [currentScreen, user]);
 
   const addToCart = (item) => {
     setCart([...cart, item]);
@@ -39,7 +49,10 @@ function App() {
         <button onClick={() => setCurrentScreen('contact')}>Contact</button>
         
         {user ? (
-          <button onClick={() => setCurrentScreen(user.role === 'admin' ? 'admin-dashboard' : 'employee-dashboard')} className="font-bold text-green-600">
+          <button 
+            onClick={() => setCurrentScreen(user.role === 'admin' ? 'admin-dashboard' : 'employee-dashboard')} 
+            className="font-bold text-green-600"
+          >
             Dashboard
           </button>
         ) : (
@@ -64,12 +77,12 @@ function App() {
         {currentScreen === 'contact' && <ContactUs />}
         {currentScreen === 'cart' && <Cart cart={cart} />}
         
-        {/* Role-Based Dashboard Routing */}
+        {/* Dashboards - Secured by Role */}
         {currentScreen === 'admin-dashboard' && user?.role === 'admin' && (
-            <AdminDashboard handleLogout={handleLogout} />
+          <AdminDashboard handleLogout={handleLogout} />
         )}
         {currentScreen === 'employee-dashboard' && user?.role === 'employee' && (
-            <EmployeeDashboard handleLogout={handleLogout} />
+          <EmployeeDashboard handleLogout={handleLogout} />
         )}
 
         {currentScreen === 'login' && (
