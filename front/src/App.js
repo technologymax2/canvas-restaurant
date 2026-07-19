@@ -10,12 +10,18 @@ import AdminDashboard from './components/AdminDashboard';
 import EmployeeDashboard from './components/EmployeeDashboard';
 import logoImg from './CanvasLogo2.png';
 
+// Change this to your actual backend URL
+const API_BASE_URL = 'http://localhost:5000'; 
+
 function App() {
   const [currentScreen, setCurrentScreen] = useState('home');
   const [cart, setCart] = useState([]);
   const [user, setUser] = useState(null); 
+  const [authMode, setAuthMode] = useState('login');
+  const [authForm, setAuthForm] = useState({ name: '', email: '', password: '' });
+  const [authStatus, setAuthStatus] = useState('');
 
-  // Guard: If a user is not authorized for the current screen, redirect them
+  // 🛡️ Security Guard: Redirect if user tries to access unauthorized dashboard
   useEffect(() => {
     if (currentScreen === 'admin-dashboard' && user?.role !== 'admin') {
       setCurrentScreen(user ? 'employee-dashboard' : 'login');
@@ -24,6 +30,42 @@ function App() {
       setCurrentScreen(user ? 'admin-dashboard' : 'login');
     }
   }, [currentScreen, user]);
+
+  const handleAuthChange = (e) => {
+    setAuthForm({ ...authForm, [e.target.name]: e.target.value });
+  };
+
+  const handleAuthSubmit = async (e) => {
+    e.preventDefault();
+    setAuthStatus('Logging in...');
+
+    try {
+      const endpoint = authMode === 'login' ? '/api/login' : '/api/signup';
+      const res = await fetch(`${API_BASE_URL}${endpoint}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(authForm)
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        setUser(data.user);
+        // Redirection based on role
+        if (data.user.role === 'admin') {
+          setCurrentScreen('admin-dashboard');
+        } else if (data.user.role === 'employee') {
+          setCurrentScreen('employee-dashboard');
+        } else {
+          setCurrentScreen('home');
+        }
+        setAuthStatus('');
+      } else {
+        setAuthStatus(data.message || 'Login failed');
+      }
+    } catch (err) {
+      setAuthStatus('Server error. Please try again.');
+    }
+  };
 
   const addToCart = (item) => {
     setCart([...cart, item]);
@@ -79,14 +121,22 @@ function App() {
         
         {/* Dashboards - Secured by Role */}
         {currentScreen === 'admin-dashboard' && user?.role === 'admin' && (
-          <AdminDashboard handleLogout={handleLogout} />
+          <AdminDashboard handleLogout={handleLogout} API_BASE_URL={API_BASE_URL} />
         )}
         {currentScreen === 'employee-dashboard' && user?.role === 'employee' && (
-          <EmployeeDashboard handleLogout={handleLogout} />
+          <EmployeeDashboard handleLogout={handleLogout} API_BASE_URL={API_BASE_URL} />
         )}
 
         {currentScreen === 'login' && (
-          <Login setUser={setUser} setCurrentScreen={setCurrentScreen} />
+          <Login 
+            authMode={authMode} 
+            setAuthMode={setAuthMode} 
+            authForm={authForm}
+            handleAuthChange={handleAuthChange}
+            handleAuthSubmit={handleAuthSubmit}
+            authStatus={authStatus}
+            logoImg={logoImg}
+          />
         )}
       </main>
     </div>
