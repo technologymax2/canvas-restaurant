@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import './AdminDashboard.css';
 import Footer from './Footer';
 import { uploadImageToImgBB } from './imageUploading';
@@ -6,43 +6,40 @@ import { uploadImageToImgBB } from './imageUploading';
 function AdminDashboard({ user, handleLogout, adminMessages, fetchMessages, newAdminForm, handleNewAdminChange, handleAddAdminSubmit, adminAddStatus, API_BASE_URL, handleDeleteMessage, projects, setProjects }) {
   const [replyText, setReplyText] = useState({});
   const [adminList, setAdminList] = useState([]);
-  const [userList, setUserList] = useState([]);
-  const [activeTab, setActiveTab] = useState('messages');
+  const [userList, setUserList] = useState([]); // 👥 አጠቃላይ የደንበኞች ዝርዝር
+  const [activeTab, setActiveTab] = useState('messages'); // messages, admins, users
 
+  // 📝 ለአድሚን መረጃ ማስተካከያ ስቴቶች
   const [editingAdmin, setEditingAdmin] = useState(null);
   const [editForm, setEditForm] = useState({ name: '', email: '' });
   const [passwordReset, setPasswordReset] = useState({ id: '', newPassword: '' });
 
+  // 👥 ለአድሚን የደንበኛ መምረጫ ስቴት (Telegram Style)
   const [selectedUserEmail, setSelectedUserEmail] = useState(null);
-  const [projectForm, setProjectForm] = useState({ title: '', link: '', imageUrl: '' });
-  const [uploading, setUploading] = useState(false);
+  // እነዚህን ስቴቶች መግለጽህን እርግጠኛ ሁን
+const [projectForm, setProjectForm] = useState({ title: '', link: '', imageUrl: '' });
+const [uploading, setUploading] = useState(false);
 
-  // Memoized fetch functions to satisfy exhaustive-deps
-  const fetchAdmins = useCallback(async () => {
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/admin/list`);
-      const data = await res.json();
-      if (data.success) setAdminList(data.admins);
-    } catch (err) { console.error('Error fetching admins'); }
-  }, [API_BASE_URL]);
 
-  const fetchUsers = useCallback(async () => {
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/admin/users`);
-      const data = await res.json();
-      if (data.success) setUserList(data.users);
-    } catch (err) { console.error('Error fetching users'); }
-  }, [API_BASE_URL]);
+useEffect(() => {
+    fetchMessages();
+    fetchAdmins();
+    fetchUsers();
+    const interval = setInterval(() => { fetchMessages(); }, 5000); 
+    return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [API_BASE_URL]); // <-- እዚህ ጋር API_BASE_URL ን ጨምርበት
 
-  // Unified Effect
   useEffect(() => {
     fetchMessages();
     fetchAdmins();
     fetchUsers();
     const interval = setInterval(() => { fetchMessages(); }, 5000); 
     return () => clearInterval(interval);
-  }, [API_BASE_URL, fetchMessages, fetchAdmins, fetchUsers]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
+  // 🔄 የ uniqueUsers ማጣሪያ (ከመልዕክቶች ተነስተው የሚመጡ ንቁ ቻቶች)
   const uniqueUsers = useMemo(() => {
     const users = [];
     const seenEmails = new Set();
@@ -63,88 +60,190 @@ function AdminDashboard({ user, handleLogout, adminMessages, fetchMessages, newA
 
   const filteredMessages = adminMessages.filter(msg => msg.email === selectedUserEmail);
 
+  // 🔄 ሁሉንም አድሚኖች ማምጫ
+  const fetchAdmins = async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/admin/list`);
+      const data = await res.json();
+      if (data.success) setAdminList(data.admins);
+    } catch (err) {
+      console.error('የአድሚኖችን ዝርዝር ማምጣት አልተቻለም');
+    }
+  };
+
+  // 🔄 ሁሉንም ቻት ያደረጉ እና የተመዘገቡ ደንበኞችን ማምጫ
+  const fetchUsers = async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/admin/users`);
+      const data = await res.json();
+      if (data.success) setUserList(data.users);
+    } catch (err) {
+      console.error('የተጠቃሚዎችን ዝርዝር ማምጣት አልተቻለም');
+    }
+  };
+
+  // 🚀 አድሚኑ በራሱ ተነሳሽቶ አዲስ መልዕክት (ወይም ምላሽ) የሚልክበት ዋና ፋንክሽን
   const handleSendAdminMessage = async () => {
     const txt = replyText['global_admin_chat'];
     if (!txt || !txt.trim()) return alert('እባክዎ መጀመሪያ መልዕክት ይጻፉ!');
+
     const activeUser = uniqueUsers.find(u => u.email === selectedUserEmail);
     if (!activeUser) return alert('እባክዎ መጀመሪያ ደንበኛ ይምረጡ!');
+
     try {
       const res = await fetch(`${API_BASE_URL}/api/admin/send-new-message`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: activeUser.name, email: selectedUserEmail, message: txt })
+        body: JSON.stringify({ 
+          name: activeUser.name, 
+          email: selectedUserEmail, 
+          message: txt 
+        })
       });
       const data = await res.json();
       if (data.success) {
-        setReplyText(prev => ({ ...prev, 'global_admin_chat': '' }));
-        fetchMessages();
+        setReplyText(prev => ({ ...prev, 'global_admin_chat': '' })); // መጻፊያውን ማጽዳት
+        fetchMessages(); // ቻቱን ወዲያው ለማደስ
       }
-    } catch (err) { alert('መልዕክቱን መላክ አልተቻለም'); }
+    } catch (err) {
+      alert('መልዕክቱን መላክ አልተቻለም፡ የባክኤንድ ስህተት');
+    }
   };
+  // ... ሌሎች ፋንክሽኖችህ (ለምሳሌ fetchAdmins, handleUpdateAdmin ወዘተ) ከላይ አሉ
 
-  const handleImageUpload = async (e) => {
-    const file = e.target.files[0];
+// 📸 አዲሱ የምስል አፕሎድ ፋንክሽን እዚህ ጋር ይጨመራል
+const handleImageUpload = async (e) => {
+  const file = e.target.files[0];
+  try {
+    // ፋይሉን ወደ ፋንክሽኑ እንልካለን፣ እሱ ሊንኩን ይዞ ይመጣል
     const imageUrl = await uploadImageToImgBB(file, setUploading);
     setProjectForm(prev => ({ ...prev, imageUrl: imageUrl }));
-  };
-
-  const handleProjectSubmit = async (e) => {
-    e.preventDefault();
-    if (!projectForm.imageUrl) return alert('ምስል ይምረጡ!');
+    alert('📸 ምስሉ በስኬት ተጭኗል!');
+  } catch (err) {
+    alert('ምስል መጫን አልተቻለም፡ ' + err.message);
+  }
+};
+// ይህ ፋንክሽን በ AdminDashboard.js ውስጥ ነው ያለው
+const handleProjectSubmit = async (e) => {
+  e.preventDefault();
+  if (!projectForm.imageUrl) return alert('እባክዎ መጀመሪያ ምስል ይምረጡ!');
+  
+  try {
     const res = await fetch(`${API_BASE_URL}/api/admin/projects`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(projectForm)
     });
+    
     if (res.ok) {
-      alert('ተመዝግቧል!');
+      alert('🎯 ፕሮጀክቱ/ምስሉ ተመዝግቧል እና ለሁሉም ሰው ይታያል!');
       setProjectForm({ title: '', link: '', imageUrl: '' });
     }
-  };
+  } catch (err) { 
+    alert('ስህተት ተፈጥሯል፡ ወደ ዳታቤዝ መላክ አልተቻለም'); 
+  }
+};
+
+// ... ከዚህ በታች ሌላ ፋንክሽን (ለምሳሌ handleProjectSubmit) ይቀጥላል
 
   const handleUpdateAdmin = async (e) => {
     e.preventDefault();
-    await fetch(`${API_BASE_URL}/api/admin/update/${editingAdmin}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(editForm)
-    });
-    setEditingAdmin(null);
-    fetchAdmins();
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/admin/update/${editingAdmin}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editForm)
+      });
+      if (res.ok) {
+        alert('የአድሚን መረጃ ተስተካክሏል!');
+        setEditingAdmin(null);
+        fetchAdmins();
+      }
+    } catch (err) {
+      alert('ማስተካከል አልተሳካም');
+    }
   };
 
   const handleResetPassword = async (id) => {
-    await fetch(`${API_BASE_URL}/api/admin/reset-password/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ newPassword: passwordReset.newPassword })
-    });
-    alert('ተቀይሯል!');
+    if (!passwordReset.newPassword || passwordReset.id !== id) return alert('እባክዎ መጀመሪያ አዲስ ፓስወርድ ይጻፉ!');
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/admin/reset-password/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ newPassword: passwordReset.newPassword })
+      });
+      if (res.ok) {
+        alert('የአድሚኑ ፓስወርድ በተሳካ ሁኔታ ተቀይሯል!');
+        setPasswordReset({ id: '', newPassword: '' });
+      }
+    } catch (err) {
+      alert('ፓስወርድ መቀየር አልተቻለም');
+    }
   };
 
   const handleDeleteAdmin = async (id) => {
-    await fetch(`${API_BASE_URL}/api/admin/delete/${id}`, { method: 'DELETE' });
-    fetchAdmins();
+    if (!window.confirm("ይህንን ረዳት አድሚን በእርግጥ ማጥፋት ይፈልጋሉ?")) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/admin/delete/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        alert('አድሚኑ ተሰርዟል!');
+        fetchAdmins();
+      }
+    } catch (err) {
+      alert('ማጥፋት አልተሳካም');
+    }
   };
 
+  // 🚫 ተጠቃሚን ብሎክ / አንብሎክ ለማድረግ (Block/Unblock User)
   const handleToggleBlockUser = async (id, isBlocked) => {
-    await fetch(`${API_BASE_URL}/api/admin/users/block/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ isBlocked: !isBlocked })
-    });
-    fetchUsers();
+    const actionText = isBlocked ? "ከእገዳ ማንሳት" : "ማገድ (Block)";
+    if (!window.confirm(`ይህንን ተጠቃሚ በእርግጥ ${actionText} ይፈልጋሉ?`)) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/admin/users/block/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isBlocked: !isBlocked })
+      });
+      if (res.ok) {
+        alert(`ተጠቃሚው በተሳካ ሁኔታ ${isBlocked ? 'ከእገዳ ተነስቷል' : 'ታግዷል'}!`);
+        fetchUsers();
+      }
+    } catch (err) {
+      alert('የብሎክ እርምጃው አልተሳካም');
+    }
   };
 
+  // 🗑️ ተጠቃሚን ወይም ቻት ያደረገን ሰው ሙሉ በሙሉ ለማጥፋት (Delete User)
   const handleDeleteUser = async (id) => {
-    await fetch(`${API_BASE_URL}/api/admin/users/delete/${id}`, { method: 'DELETE' });
-    fetchUsers();
+    if (!window.confirm("ይህንን ተጠቃሚ አካውንት ሙሉ በሙሉ ማጥፋት ይፈልጋሉ? ይህ ድርጊት አይመለስም!")) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/admin/users/delete/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        alert('ተጠቃሚው ሙሉ በሙሉ ተሰርዟል!');
+        fetchUsers();
+        fetchMessages(); // የግራውን ሳይድባር ጭምር ለማጽዳት
+      }
+    } catch (err) {
+      alert('ተጠቃሚውን ማጥፋት አልተቻለም');
+    }
   };
+ const handleDeleteProject = async (id) => {
+  if (window.confirm('ይህንን ፕሮጀክት በእርግጥ ማጥፋት ይፈልጋሉ?')) {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/admin/projects/${id}`, {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        alert('ፕሮጀክቱ ተሰርዟል!');
+        // እዚህ ጋር setProjects ን መጠቀምህ ነው ማስጠንቀቂያውን የሚያጠፋው
+        setProjects(prev => prev.filter(p => p._id !== id)); 
+      }
+    } catch (err) {
+      alert('ማጥፋት አልተቻለም');
+    }
+  }
+};
 
-  const handleDeleteProject = async (id) => {
-    await fetch(`${API_BASE_URL}/api/admin/projects/${id}`, { method: 'DELETE' });
-    setProjects(prev => prev.filter(p => p._id !== id));
-  };
   return (
     <div className="admin-dashboard-container">
       
