@@ -138,12 +138,12 @@ function App() {
   
 <header 
   className="flex-grow flex flex-col justify-center items-center text-center p-6 md:p-10 text-white min-h-[60vh] relative bg-cover bg-center bg-no-repeat"
-  style={{ backgroundImage: 'url(bacggroundForCanvas.jpg)' }} // Replace with your image path
+  style={{ backgroundImage: `url(${process.env.PUBLIC_URL}/bacggroundForCanvas.jpg)` }} 
 >
-  {/* This div creates the dark overlay for readability */}
+  {/* Dark overlay for readability */}
   <div className="absolute inset-0 bg-black opacity-60"></div>
 
-  {/* All text elements must have 'relative z-10' to appear on top of the overlay */}
+  {/* Content */}
   <h1 className="text-4xl md:text-6xl font-extrabold mb-4 leading-tight relative z-10 drop-shadow-lg">
     እንኳን ወደ Canvas-Restaurant በሰላም መጡ!
   </h1>
