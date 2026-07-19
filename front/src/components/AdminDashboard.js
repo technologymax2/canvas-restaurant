@@ -25,7 +25,6 @@ function AdminDashboard({ user, handleLogout, adminMessages, fetchMessages, newA
     return () => clearInterval(interval);
   }, [API_BASE_URL]);
 
-  // 🔄 Updated with Optional Chaining for safety
   const uniqueUsers = useMemo(() => {
     const users = [];
     const seenEmails = new Set();
@@ -44,7 +43,6 @@ function AdminDashboard({ user, handleLogout, adminMessages, fetchMessages, newA
     }
   }, [uniqueUsers, selectedUserEmail]);
 
-  // 🔄 Updated with Optional Chaining and fallback to empty array
   const filteredMessages = adminMessages?.filter(msg => msg.email === selectedUserEmail) || [];
 
   const fetchAdmins = async () => {
@@ -52,9 +50,7 @@ function AdminDashboard({ user, handleLogout, adminMessages, fetchMessages, newA
       const res = await fetch(`${API_BASE_URL}/api/admin/list`);
       const data = await res.json();
       if (data.success) setAdminList(data.admins);
-    } catch (err) {
-      console.error('የአድሚኖችን ዝርዝር ማምጣት አልተቻለም');
-    }
+    } catch (err) { console.error('የአድሚኖችን ዝርዝር ማምጣት አልተቻለም'); }
   };
 
   const fetchUsers = async () => {
@@ -62,36 +58,26 @@ function AdminDashboard({ user, handleLogout, adminMessages, fetchMessages, newA
       const res = await fetch(`${API_BASE_URL}/api/admin/users`);
       const data = await res.json();
       if (data.success) setUserList(data.users);
-    } catch (err) {
-      console.error('የተጠቃሚዎችን ዝርዝር ማምጣት አልተቻለም');
-    }
+    } catch (err) { console.error('የተጠቃሚዎችን ዝርዝር ማምጣት አልተቻለም'); }
   };
 
   const handleSendAdminMessage = async () => {
     const txt = replyText['global_admin_chat'];
     if (!txt || !txt.trim()) return alert('እባክዎ መጀመሪያ መልዕክት ይጻፉ!');
-
     const activeUser = uniqueUsers.find(u => u.email === selectedUserEmail);
     if (!activeUser) return alert('እባክዎ መጀመሪያ ደንበኛ ይምረጡ!');
-
     try {
       const res = await fetch(`${API_BASE_URL}/api/admin/send-new-message`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          name: activeUser.name, 
-          email: selectedUserEmail, 
-          message: txt 
-        })
+        body: JSON.stringify({ name: activeUser.name, email: selectedUserEmail, message: txt })
       });
       const data = await res.json();
       if (data.success) {
         setReplyText(prev => ({ ...prev, 'global_admin_chat': '' }));
         fetchMessages();
       }
-    } catch (err) {
-      alert('መልዕክቱን መላክ አልተቻለም');
-    }
+    } catch (err) { alert('መልዕክቱን መላክ አልተቻለም'); }
   };
 
   const handleImageUpload = async (e) => {
@@ -100,9 +86,7 @@ function AdminDashboard({ user, handleLogout, adminMessages, fetchMessages, newA
       const imageUrl = await uploadImageToImgBB(file, setUploading);
       setProjectForm(prev => ({ ...prev, imageUrl: imageUrl }));
       alert('📸 ምስሉ በስኬት ተጭኗል!');
-    } catch (err) {
-      alert('ምስል መጫን አልተቻለም');
-    }
+    } catch (err) { alert('ምስል መጫን አልተቻለም'); }
   };
 
   const handleProjectSubmit = async (e) => {
@@ -229,7 +213,7 @@ function AdminDashboard({ user, handleLogout, adminMessages, fetchMessages, newA
                 <span>{p.title}</span>
                 <button onClick={() => handleDeleteProject(p._id)}>🗑 አጥፋ</button>
               </div>
-            ))}
+            )) || <p>ምንም ፕሮጀክት የለም።</p>}
           </div>
         </div>
       )}
@@ -254,55 +238,32 @@ function AdminDashboard({ user, handleLogout, adminMessages, fetchMessages, newA
         </div>
       )}
 
-     <tbody>
-  {adminList?.map((adm) => (
-    <tr key={adm._id}>
-      <td data-label="ስም"><strong>{adm.name}</strong></td>
-      <td data-label="ዩዘርኔም">{adm.email}</td>
-      <td data-label="የፓስወርድ ማስተካከያ">
-        <div className="admin-inline-flex admin-wrap-fix">
-          <input 
-            type="text" 
-            placeholder="አዲስ ፓስወርድ" 
-            value={passwordReset.id === adm._id ? passwordReset.newPassword : ''} 
-            onChange={(e) => setPasswordReset({ id: adm._id, newPassword: e.target.value })} 
-            className="input-field admin-table-input" 
-          />
-          <button onClick={() => handleResetPassword(adm._id)} className="btn-action btn-edit btn-padding-fix">ቀይር</button>
-        </div>
-      </td>
-      <td data-label="እርምጃ">
-        <div className="admin-inline-flex">
-          <button onClick={() => { setEditingAdmin(adm._id); setEditForm({ name: adm.name, email: adm.email }); }} className="btn-action btn-reply btn-padding-fix">✏</button>
-          <button onClick={() => handleDeleteAdmin(adm._id)} className="btn-action btn-delete btn-padding-fix">🗑</button>
-        </div>
-      </td>
-    </tr>
-  )) || <tr><td colSpan="4">አድሚኖች የሉም</td></tr>}
-</tbody><tbody>
-  {userList?.map((u) => (
-    <tr key={u._id} className={u.isBlocked ? "blocked-user-row" : ""}>
-      <td data-label="የደንበኛ ስም"><strong>{u.name}</strong></td>
-      <td data-label="ኢሜይል አድራሻ">{u.email} {u.isChatOnly && <span style={{fontSize: '11px', color: '#ffd700', background: '#222', padding: '2px 6px', borderRadius: '4px', marginLeft: '5px'}}>💬 ቻት ብቻ</span>}</td>
-      <td data-label="ሁኔታ">
-        <span className={`status-badge ${u.isBlocked ? "badge-blocked" : "badge-active"}`}>
-          {u.isBlocked ? "🚫 የታገደ" : "✔ ንቁ (Active)"}
-        </span>
-      </td>
-      <td data-label="እርምጃዎች">
-        <div className="admin-inline-flex">
-          <button 
-            onClick={() => handleToggleBlockUser(u._id, u.isBlocked)} 
-            className={`btn-action ${u.isBlocked ? "btn-unblock" : "btn-block-action"}`}
-          >
-            {u.isBlocked ? "🔓 እገዳ አንሳ" : "🚫 እገድ"}
-          </button>
-          <button onClick={() => handleDeleteUser(u._id)} className="btn-action btn-delete">🗑 አካውንት አጥፋ</button>
-        </div>
-      </td>
-    </tr>
-  )) || <tr><td colSpan="4">ምንም የተመዘገበ ደንበኛ አልተገኘም።</td></tr>}
-</tbody>
+      {activeTab === 'admins' && (
+        <table className="custom-table">
+          <tbody>
+            {adminList?.map((adm) => (
+              <tr key={adm._id}>
+                <td>{adm.name}</td>
+                <td>{adm.email}</td>
+                <td><button onClick={() => handleDeleteAdmin(adm._id)}>🗑</button></td>
+              </tr>
+            )) || <tr><td colSpan="3">አድሚኖች የሉም</td></tr>}
+          </tbody>
+        </table>
+      )}
+
+      {activeTab === 'users' && (
+        <table className="custom-table">
+          <tbody>
+            {userList?.map((u) => (
+              <tr key={u._id}>
+                <td>{u.name}</td>
+                <td><button onClick={() => handleDeleteUser(u._id)}>🗑 አካውንት አጥፋ</button></td>
+              </tr>
+            )) || <tr><td colSpan="2">ተጠቃሚዎች የሉም</td></tr>}
+          </tbody>
+        </table>
+      )}
       
       <Footer />
     </div>
