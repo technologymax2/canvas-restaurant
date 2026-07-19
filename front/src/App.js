@@ -7,6 +7,7 @@ import Cart from './components/Cart';
 import OurFoods from './components/OurFoods';
 import Login from './components/Login';
 import logoImg from './CanvasLogo2.png';
+import EmployeeDashboard from './EmployeeDashboard';
 
 function App() {
   const [currentScreen, setCurrentScreen] = useState('home');
@@ -61,6 +62,7 @@ function App() {
         {currentScreen === 'order' && <Order />}
         {currentScreen === 'contact' && <ContactUs />}
         {currentScreen === 'cart' && <Cart cart={cart} />}
+{currentScreen === 'employee-dashboard' && <EmployeeDashboard />}
         {currentScreen === 'login' && (
           <Login 
             authMode={authMode} 
