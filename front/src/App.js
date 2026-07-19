@@ -138,7 +138,7 @@ function App() {
   
 <header 
   className="flex-grow flex flex-col justify-center items-center text-center p-6 md:p-10 text-white min-h-[60vh] relative bg-cover bg-center bg-no-repeat"
-  style={{ backgroundImage: 'url(path-to-your-food-image.jpg)' }} // Replace with your image path
+  style={{ backgroundImage: 'url(bacggroundForCanvas.jpg)' }} // Replace with your image path
 >
   {/* This div creates the dark overlay for readability */}
   <div className="absolute inset-0 bg-black opacity-60"></div>
