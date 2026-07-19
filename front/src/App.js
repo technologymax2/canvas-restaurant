@@ -3,7 +3,7 @@ import Login from './components/Login';
 import AdminDashboard from './components/AdminDashboard';
 import OrderPage from './components/OrderPage';
 import Footer from './components/Footer';
-import logoImg from './CanvasLogoFinal.png'; 
+import logoImg from './CanvasLogo2.png'; 
 
 function App() {
   const API_BASE_URL = 'https://canvas-restaurant.onrender.com';
