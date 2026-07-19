@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 // Adjust the import paths based on where your images are located
-import logoImg from './CanvasLogo2.png'; 
-import heroBg from './bacggroundForCanvas.jpg'; 
+import logoImg from '../CanvasLogo2.png'; // Use ../ to go up one folder
+import heroBg from '../bacggroundForCanvas.jpg';
 
 function Home({ setCurrentScreen }) {
   const [projects, setProjects] = useState([]);
