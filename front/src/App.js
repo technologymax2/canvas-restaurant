@@ -109,16 +109,31 @@ function App() {
   if (currentScreen === 'home') {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
-        <nav className="bg-white shadow-md p-4 flex justify-between items-center px-8">
-          <div className="flex items-center gap-3">
-            <img src={logoImg} alt="Logo" className="h-12 w-12 object-contain" />
-            <span className="text-xl font-bold text-gray-800">Canvas-Restaurant</span>
-          </div>
-          <div className="flex gap-4">
-            <button onClick={() => { setAuthStatus(''); setCurrentScreen('login'); }} className="bg-gray-800 text-white px-6 py-2 rounded-lg hover:bg-black transition">Login</button>
-            <button onClick={() => { setAuthStatus(''); setCurrentScreen('signup'); }} className="bg-yellow-500 text-black px-6 py-2 rounded-lg font-bold hover:bg-yellow-400 transition">Signup</button>
-          </div>
-        </nav>
+       <nav className="bg-white shadow-md p-4 flex flex-wrap justify-between items-center px-4 md:px-8">
+  {/* Logo and Brand Name */}
+  <div className="flex items-center gap-2">
+    <img src={logoImg} alt="Logo" className="h-10 w-10 object-contain" />
+    <span className="text-lg md:text-xl font-bold text-gray-800 truncate">
+      Canvas-Restaurant
+    </span>
+  </div>
+
+  {/* Login and Signup Buttons */}
+  <div className="flex gap-2 mt-2 md:mt-0">
+    <button 
+      onClick={() => { setAuthStatus(''); setCurrentScreen('login'); }} 
+      className="bg-gray-800 text-white px-3 py-1.5 md:px-6 md:py-2 rounded-lg text-sm md:text-base hover:bg-black transition"
+    >
+      Login
+    </button>
+    <button 
+      onClick={() => { setAuthStatus(''); setCurrentScreen('signup'); }} 
+      className="bg-yellow-500 text-black px-3 py-1.5 md:px-6 md:py-2 rounded-lg text-sm md:text-base font-bold hover:bg-yellow-400 transition"
+    >
+      Signup
+    </button>
+  </div>
+</nav>
 
         <header className="flex-grow flex flex-col justify-center items-center text-center p-10 bg-gradient-to-b from-gray-900 to-gray-800 text-white">
           <h1 className="text-5xl font-extrabold mb-4">እንኳን ወደ Canvas-Restaurant በሰላም መጡ!</h1>
