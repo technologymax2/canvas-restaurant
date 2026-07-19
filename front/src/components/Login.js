@@ -62,7 +62,11 @@ function Login({
           </form>
 
           {authStatus && (
-            <p className={`mt-4 text-center font-medium ${authStatus.includes('successfully') ? 'text-green-600' : 'text-red-600'}`}>
+            <p className={`mt-4 text-center font-medium ${
+              authStatus.includes('ስኬት') || authStatus === 'Logging in...' 
+              ? 'text-green-600' 
+              : 'text-red-600'
+            }`}>
               {authStatus}
             </p>
           )}
