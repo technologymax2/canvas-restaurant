@@ -19,7 +19,13 @@ function AdminDashboard({ user, handleLogout, adminMessages, fetchMessages, newA
   // እነዚህን ስቴቶች መግለጽህን እርግጠኛ ሁን
 const [projectForm, setProjectForm] = useState({ title: '', link: '', imageUrl: '' });
 const [uploading, setUploading] = useState(false);
+const [employeeForm, setEmployeeForm] = useState({
+    name: '',
+    email: '',
+    password: ''
+});
 
+const [employeeStatus, setEmployeeStatus] = useState('');
 
 useEffect(() => {
     fetchMessages();
@@ -232,6 +238,58 @@ const handleProjectSubmit = async (e) => {
       alert('ተጠቃሚውን ማጥፋት አልተቻለም');
     }
   };
+
+  
+  const handleEmployeeChange = (e) => {
+    setEmployeeForm({
+        ...employeeForm,
+        [e.target.name]: e.target.value
+    });
+};
+  const handleEmployeeSubmit = async (e) => {
+
+    e.preventDefault();
+
+    try {
+
+        const res = await fetch(`${API_BASE_URL}/api/admin/add-employee`,{
+
+            method:'POST',
+
+            headers:{
+                'Content-Type':'application/json'
+            },
+
+            body:JSON.stringify(employeeForm)
+
+        });
+
+        const data = await res.json();
+
+        if(data.success){
+
+            setEmployeeStatus("✅ Employee created.");
+
+            setEmployeeForm({
+                name:'',
+                email:'',
+                password:''
+            });
+
+        }else{
+
+            setEmployeeStatus(data.error);
+
+        }
+
+    }catch{
+
+        setEmployeeStatus("Server error.");
+
+    }
+
+};
+  
  const handleDeleteProject = async (id) => {
   if (window.confirm('ይህንን ፕሮጀክት በእርግጥ ማጥፋት ይፈልጋሉ?')) {
     try {
@@ -268,6 +326,12 @@ const handleProjectSubmit = async (e) => {
   <button 
     className={`tab-nav-btn ${activeTab === 'admins' ? 'active-tab' : ''}`} 
     onClick={() => setActiveTab('admins')}>👥 አድሚኖች</button>
+      <button
+    className={`tab-nav-btn ${activeTab === 'employees' ? 'active-tab' : ''}`}
+    onClick={() => setActiveTab('employees')}
+>
+    👨‍🍳 Employees
+</button>
   <button 
     className={`tab-nav-btn ${activeTab === 'users' ? 'active-tab' : ''}`} 
     onClick={() => setActiveTab('users')}>👤 ደንበኞች</button>
@@ -413,6 +477,54 @@ const handleProjectSubmit = async (e) => {
             </form>
             {adminAddStatus && <p className="status-msg">{adminAddStatus}</p>}
           </div>
+              {activeTab === "employees" && (
+
+<div className="card">
+
+<h2>Create Employee</h2>
+
+<form onSubmit={handleEmployeeSubmit}>
+
+<input
+type="text"
+name="name"
+placeholder="Employee Name"
+value={employeeForm.name}
+onChange={handleEmployeeChange}
+required
+/>
+
+<input
+type="text"
+name="email"
+placeholder="Username"
+value={employeeForm.email}
+onChange={handleEmployeeChange}
+required
+/>
+
+<input
+type="password"
+name="password"
+placeholder="Password"
+value={employeeForm.password}
+onChange={handleEmployeeChange}
+required
+/>
+
+<button type="submit">
+
+Create Employee
+
+</button>
+
+</form>
+
+<p>{employeeStatus}</p>
+
+</div>
+
+)}
 
           <div className="card admin-table-card">
             <h3>📋 የተመዘገቡ አድሚኖች ዝርዝር</h3>
