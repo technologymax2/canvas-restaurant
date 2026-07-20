@@ -39,18 +39,23 @@ useEffect(() => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // 🔄 የ uniqueUsers ማጣሪያ (ከመልዕክቶች ተነስተው የሚመጡ ንቁ ቻቶች)
-  const uniqueUsers = useMemo(() => {
-    const users = [];
-    const seenEmails = new Set();
-    adminMessages.forEach(msg => {
-      if (!seenEmails.has(msg.email)) {
-        seenEmails.add(msg.email);
-        users.push({ name: msg.name, email: msg.email });
-      }
-    });
-    return users;
-  }, [adminMessages]);
+ const uniqueUsers = useMemo(() => {
+  // SAFETY CHECK: If adminMessages is undefined or null, return empty array
+  if (!adminMessages || !Array.isArray(adminMessages)) {
+    return [];
+  }
+
+  const users = [];
+  const seenEmails = new Set();
+  
+  adminMessages.forEach(msg => {
+    if (!seenEmails.has(msg.email)) {
+      seenEmails.add(msg.email);
+      users.push({ name: msg.name, email: msg.email });
+    }
+  });
+  return users;
+}, [adminMessages]);
 
   useEffect(() => {
     if (uniqueUsers.length > 0 && !selectedUserEmail) {
