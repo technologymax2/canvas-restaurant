@@ -69,7 +69,9 @@ useEffect(() => {
     }
   }, [uniqueUsers, selectedUserEmail]);
 
-  const filteredMessages = adminMessages.filter(msg => msg.email === selectedUserEmail);
+ const filteredMessages = (adminMessages || []).filter(
+  msg => msg.email === selectedUserEmail
+);
 
   // 🔄 ሁሉንም አድሚኖች ማምጫ
   const fetchAdmins = async () => {
