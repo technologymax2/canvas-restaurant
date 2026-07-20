@@ -20,41 +20,15 @@ function App() {
   const [authForm, setAuthForm] = useState({ name: '', email: '', password: '' });
   const [authStatus, setAuthStatus] = useState('');
 
-  // 🛠️ REQUIRED STATES FOR ADMIN DASHBOARD
-  const [adminMessages, setAdminMessages] = useState([]);
-  const [projects, setProjects] = useState([]);
-  const [newAdminForm, setNewAdminForm] = useState({ name: '', email: '', password: '' });
-  const [adminAddStatus, setAdminAddStatus] = useState('');
-
-  const fetchMessages = async () => {
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/admin/messages`);
-      const data = await res.json();
-      if (data.success) setAdminMessages(data.messages);
-    } catch (err) { console.error('Failed to fetch messages'); }
-  };
-
-  const handleNewAdminChange = (e) => {
-    setNewAdminForm({ ...newAdminForm, [e.target.name]: e.target.value });
-  };
-
-  const handleAddAdminSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/admin/add`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newAdminForm)
-      });
-      const data = await res.json();
-      setAdminAddStatus(data.success ? 'Admin added!' : 'Failed to add admin');
-    } catch (err) { setAdminAddStatus('Error adding admin'); }
-  };
-
-  const handleDeleteMessage = async (id) => {
-    await fetch(`${API_BASE_URL}/api/admin/messages/${id}`, { method: 'DELETE' });
-    fetchMessages();
-  };
+  // 🛡️ Security Guard: Redirect if user tries to access unauthorized dashboard
+  useEffect(() => {
+    if (currentScreen === 'admin-dashboard' && user?.role !== 'admin') {
+      setCurrentScreen(user ? 'employee-dashboard' : 'login');
+    }
+    if (currentScreen === 'employee-dashboard' && user?.role !== 'employee') {
+      setCurrentScreen(user ? 'admin-dashboard' : 'login');
+    }
+  }, [currentScreen, user]);
 
   const handleAuthChange = (e) => {
     setAuthForm({ ...authForm, [e.target.name]: e.target.value });
@@ -63,6 +37,7 @@ function App() {
   const handleAuthSubmit = async (e) => {
     e.preventDefault();
     setAuthStatus('Logging in...');
+
     try {
       const endpoint = authMode === 'login' ? '/api/auth/login' : '/api/auth/signup';
       const res = await fetch(`${API_BASE_URL}${endpoint}`, {
@@ -71,49 +46,85 @@ function App() {
         body: JSON.stringify(authForm)
       });
       const data = await res.json();
+
       if (data.success) {
         setUser(data.user);
-        setCurrentScreen(data.user.role === 'admin' ? 'admin-dashboard' : 'home');
+        if (data.user.role === 'admin') {
+          setCurrentScreen('admin-dashboard');
+        } else if (data.user.role === 'employee') {
+          setCurrentScreen('employee-dashboard');
+        } else {
+          setCurrentScreen('home');
+        }
+        setAuthStatus('');
       } else {
         setAuthStatus(data.error || 'Login failed');
       }
-    } catch (err) { setAuthStatus('Server error.'); }
+    } catch (err) {
+      setAuthStatus('Server error. Please try again.');
+    }
   };
 
-  const handleLogout = () => { setUser(null); setCurrentScreen('home'); };
+  const addToCart = (item) => {
+    setCart([...cart, item]);
+    alert(`${item.title} ወደ ካርታ ተጨምሯል!`);
+  };
 
-  const addToCart = (item) => { setCart([...cart, item]); };
+  const handleLogout = () => {
+    setUser(null);
+    setCurrentScreen('home');
+  };
+
+  const Navbar = () => (
+    <nav className="bg-white p-4 flex flex-wrap justify-between items-center shadow-md sticky top-0 z-50">
+      <div className="flex items-center gap-2 cursor-pointer" onClick={() => setCurrentScreen('home')}>
+        <img src={logoImg} alt="Logo" className="h-10 w-10 object-contain" />
+        <span className="font-bold text-xl">Canvas-Restaurant</span>
+      </div>
+      
+      <div className="flex gap-4 text-sm md:text-base items-center">
+        <button onClick={() => setCurrentScreen('home')}>Home</button>
+        <button onClick={() => setCurrentScreen('menu')}>Menu</button>
+        <button onClick={() => setCurrentScreen('our-foods')}>Our Foods</button>
+        <button onClick={() => setCurrentScreen('contact')}>Contact</button>
+        
+        {user ? (
+          <button 
+            onClick={() => setCurrentScreen(user.role === 'admin' ? 'admin-dashboard' : 'employee-dashboard')} 
+            className="font-bold text-green-600"
+          >
+            Dashboard
+          </button>
+        ) : (
+          <button onClick={() => setCurrentScreen('login')} className="font-bold text-blue-600">Login</button>
+        )}
+        
+        <button onClick={() => setCurrentScreen('cart')} className="bg-yellow-500 px-4 py-1 rounded-full font-bold">
+          Cart ({cart.length})
+        </button>
+      </div>
+    </nav>
+  );
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white p-4 flex justify-between items-center shadow-md">
-        <div className="cursor-pointer font-bold text-xl" onClick={() => setCurrentScreen('home')}>Canvas-Restaurant</div>
-        <div className="flex gap-4">
-          <button onClick={() => setCurrentScreen('home')}>Home</button>
-          {user?.role === 'admin' && <button onClick={() => setCurrentScreen('admin-dashboard')}>Dashboard</button>}
-          {!user ? <button onClick={() => setCurrentScreen('login')}>Login</button> : <button onClick={handleLogout}>Logout</button>}
-        </div>
-      </nav>
-
+      <Navbar />
       <main>
-        {currentScreen === 'home' && <Home />}
+        {currentScreen === 'home' && <Home setCurrentScreen={setCurrentScreen} />}
         {currentScreen === 'menu' && <FoodMenu addToCart={addToCart} />}
+        {currentScreen === 'our-foods' && <OurFoods addToCart={addToCart} />}
+        {currentScreen === 'order' && <Order />}
+        {currentScreen === 'contact' && <ContactUs />}
+        {currentScreen === 'cart' && <Cart cart={cart} />}
+        
+        {/* Dashboards - Secured by Role */}
         {currentScreen === 'admin-dashboard' && user?.role === 'admin' && (
-          <AdminDashboard 
-            user={user}
-            handleLogout={handleLogout} 
-            API_BASE_URL={API_BASE_URL} 
-            adminMessages={adminMessages}
-            fetchMessages={fetchMessages}
-            newAdminForm={newAdminForm}
-            handleNewAdminChange={handleNewAdminChange}
-            handleAddAdminSubmit={handleAddAdminSubmit}
-            adminAddStatus={adminAddStatus}
-            handleDeleteMessage={handleDeleteMessage}
-            projects={projects}
-            setProjects={setProjects}
-          />
+          <AdminDashboard handleLogout={handleLogout} API_BASE_URL={API_BASE_URL} />
         )}
+        {currentScreen === 'employee-dashboard' && user?.role === 'employee' && (
+          <EmployeeDashboard handleLogout={handleLogout} API_BASE_URL={API_BASE_URL} />
+        )}
+
         {currentScreen === 'login' && (
           <Login 
             authMode={authMode} 
@@ -122,6 +133,7 @@ function App() {
             handleAuthChange={handleAuthChange}
             handleAuthSubmit={handleAuthSubmit}
             authStatus={authStatus}
+            logoImg={logoImg}
           />
         )}
       </main>
