@@ -387,6 +387,49 @@ app.delete('/api/admin/users/delete/:id', async (req, res) => {
   }
 });
 
+
+// 👨‍🍳 1. ሁሉንም ሰራተኞች ማምጫ (GET Employees List)
+app.get('/api/admin/employees-list', async (req, res) => {
+  try {
+    const employees = await User.find({ role: 'employee' }).select('-password');
+    res.status(200).json({ success: true, employees });
+  } catch (error) {
+    res.status(500).json({ success: false, error: 'የሰራተኞችን ዝርዝር ማምጣት አልተቻለም' });
+  }
+});
+
+// ✏️ 2. የሰራተኛ መረጃ ማስተካከያ (PUT Employee Update)
+app.put('/api/admin/employee-update/:id', async (req, res) => {
+  try {
+    const { name, email } = req.body;
+    await User.findByIdAndUpdate(req.params.id, { name, email });
+    res.status(200).json({ success: true, message: 'የሰራተኛው መረጃ ተስተካክሏል!' });
+  } catch (error) {
+    res.status(500).json({ success: false, error: 'ሰራተኛውን ማስተካከል አልተሳካም' });
+  }
+});
+
+// 🔑 3. የሰራተኛ ፓስወርድ መለወጫ (PUT Employee Password Reset)
+app.put('/api/admin/employee-reset-password/:id', async (req, res) => {
+  try {
+    const { newPassword } = req.body;
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await User.findByIdAndUpdate(req.params.id, { password: hashedPassword });
+    res.status(200).json({ success: true, message: 'የሰራተኛው ፓስወርድ በስኬት ተለውጧል!' });
+  } catch (error) {
+    res.status(500).json({ success: false, error: 'የሰራተኛ ፓስወርድ መቀየር አልተቻለም' });
+  }
+});
+
+// 🗑️ 4. ሰራተኛን ሙሉ በሙሉ መሰረዣ (DELETE Employee)
+app.delete('/api/admin/employee-delete/:id', async (req, res) => {
+  try {
+    await User.findByIdAndDelete(req.params.id);
+    res.status(200).json({ success: true, message: 'ሰራተኛው በተሳካ ሁኔታ ተሰርዟል!' });
+  } catch (error) {
+    res.status(500).json({ success: false, error: 'ሰራተኛውን ማጥፋት አልተቻለም' });
+  }
+});
 // ==========================================
 // 6. የደንበኞች ማዘዣ መስመሮች (USER/ORDER ROUTES)
 // ==========================================
