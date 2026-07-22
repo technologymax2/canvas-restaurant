@@ -6,13 +6,20 @@ import { uploadImageToImgBB } from './imageUploading';
 function AdminDashboard({ user, handleLogout, adminMessages, fetchMessages, newAdminForm, handleNewAdminChange, handleAddAdminSubmit, adminAddStatus, API_BASE_URL, handleDeleteMessage, projects, setProjects }) {
   const [replyText, setReplyText] = useState({});
   const [adminList, setAdminList] = useState([]);
+  const [employeeList, setEmployeeList] = useState([]); // 👨‍🍳 የሰራተኞች ዝርዝር
   const [userList, setUserList] = useState([]); // 👥 አጠቃላይ የደንበኞች ዝርዝር
   const [activeTab, setActiveTab] = useState('messages'); // messages, admins, employees, users, projects
 
-  // 📝 ለአድሚን መረጃ ማስተካከያ ስቴቶች
+  // 📝 ለአድሚን እና ሰራተኛ መረጃ ማስተካከያ ስቴቶች
   const [editingAdmin, setEditingAdmin] = useState(null);
   const [editForm, setEditForm] = useState({ name: '', email: '' });
+  
+  // 📝 ለሰራተኛ ማስተካከያ የተለየ ስቴት
+  const [editingEmployee, setEditingEmployee] = useState(null);
+  const [editEmployeeForm, setEditEmployeeForm] = useState({ name: '', email: '' });
+
   const [passwordReset, setPasswordReset] = useState({ id: '', newPassword: '' });
+  const [employeePasswordReset, setEmployeePasswordReset] = useState({ id: '', newPassword: '' });
 
   // 👥 ለአድሚን የደንበኛ መምረጫ ስቴት (Telegram Style)
   const [selectedUserEmail, setSelectedUserEmail] = useState(null);
@@ -30,6 +37,7 @@ function AdminDashboard({ user, handleLogout, adminMessages, fetchMessages, newA
   useEffect(() => {
     fetchMessages();
     fetchAdmins();
+    fetchEmployees();
     fetchUsers();
     const interval = setInterval(() => { fetchMessages(); }, 5000); 
     return () => clearInterval(interval);
@@ -39,6 +47,7 @@ function AdminDashboard({ user, handleLogout, adminMessages, fetchMessages, newA
   useEffect(() => {
     fetchMessages();
     fetchAdmins();
+    fetchEmployees();
     fetchUsers();
     const interval = setInterval(() => { fetchMessages(); }, 5000); 
     return () => clearInterval(interval);
@@ -83,6 +92,17 @@ function AdminDashboard({ user, handleLogout, adminMessages, fetchMessages, newA
     }
   };
 
+  // 🔄 ሁሉንም ሰራተኞች ማምጫ
+  const fetchEmployees = async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/admin/employees-list`);
+      const data = await res.json();
+      if (data.success) setEmployeeList(data.employees);
+    } catch (err) {
+      console.error('የሰራተኞችን ዝርዝር ማምጣት አልተቻለም');
+    }
+  };
+
   // 🔄 ሁሉንም ቻት ያደረጉ እና የተመዘገቡ ደንበኞችን ማምጫ
   const fetchUsers = async () => {
     try {
@@ -94,7 +114,7 @@ function AdminDashboard({ user, handleLogout, adminMessages, fetchMessages, newA
     }
   };
 
-  // 🚀 አድሚኑ በራሱ ተነሳሽቶ አዲስ መልዕክት (ወይም ምላሽ) የሚልክበት ዋና ፋንክሽን
+  // 🚀 አድሚኑ በራሱ ተነሳሽቶ አዲስ መልዕክት የሚልክበት ዋና ፋንክሽን
   const handleSendAdminMessage = async () => {
     const txt = replyText['global_admin_chat'];
     if (!txt || !txt.trim()) return alert('እባክዎ መጀመሪያ መልዕክት ይጻፉ!');
@@ -172,6 +192,25 @@ function AdminDashboard({ user, handleLogout, adminMessages, fetchMessages, newA
     }
   };
 
+  // ✏️ ሰራተኛን ለማስተካከል
+  const handleUpdateEmployee = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/admin/employee-update/${editingEmployee}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editEmployeeForm)
+      });
+      if (res.ok) {
+        alert('የሰራተኛው መረጃ ተስተካክሏል!');
+        setEditingEmployee(null);
+        fetchEmployees();
+      }
+    } catch (err) {
+      alert('ሰራተኛውን ማስተካከል አልተሳካም');
+    }
+  };
+
   const handleResetPassword = async (id) => {
     if (!passwordReset.newPassword || passwordReset.id !== id) return alert('እባክዎ መጀመሪያ አዲስ ፓስወርድ ይጻፉ!');
     try {
@@ -189,6 +228,24 @@ function AdminDashboard({ user, handleLogout, adminMessages, fetchMessages, newA
     }
   };
 
+  // 🔑 የሰራተኛ ፓስወርድ መቀየሪያ
+  const handleResetEmployeePassword = async (id) => {
+    if (!employeePasswordReset.newPassword || employeePasswordReset.id !== id) return alert('እባክዎ መጀመሪያ አዲስ ፓስወርድ ይጻፉ!');
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/admin/employee-reset-password/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ newPassword: employeePasswordReset.newPassword })
+      });
+      if (res.ok) {
+        alert('የሰራተኛው ፓስወርድ በተሳካ ሁኔታ ተቀይሯል!');
+        setEmployeePasswordReset({ id: '', newPassword: '' });
+      }
+    } catch (err) {
+      alert('የሰራተኛ ፓስወርድ መቀየር አልተቻለም');
+    }
+  };
+
   const handleDeleteAdmin = async (id) => {
     if (!window.confirm("ይህንን ረዳት አድሚን በእርግጥ ማጥፋት ይፈልጋሉ?")) return;
     try {
@@ -199,6 +256,20 @@ function AdminDashboard({ user, handleLogout, adminMessages, fetchMessages, newA
       }
     } catch (err) {
       alert('ማጥፋት አልተሳካም');
+    }
+  };
+
+  // 🗑️ ሰራተኛን ለማጥፋት
+  const handleDeleteEmployee = async (id) => {
+    if (!window.confirm("ይህንን ሰራተኛ በእርግጥ ማጥፋት ይፈልጋሉ?")) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/admin/employee-delete/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        alert('ሰራተኛው ተሰርዟል!');
+        fetchEmployees();
+      }
+    } catch (err) {
+      alert('ሰራተኛውን ማጥፋት አልተሳካም');
     }
   };
 
@@ -259,6 +330,7 @@ function AdminDashboard({ user, handleLogout, adminMessages, fetchMessages, newA
           email: '',
           password: ''
         });
+        fetchEmployees(); // ዝርዝሩን ወዲያውኑ ለማሳየት
       } else {
         setEmployeeStatus(data.error || "Failed to create employee.");
       }
@@ -478,43 +550,77 @@ function AdminDashboard({ user, handleLogout, adminMessages, fetchMessages, newA
         </div>
       )}
 
-      {/* 👨‍🍳 Employees ታብ */}
+      {/* 👨‍🍳 Employees ታብ (ይጨምሩ + ዝርዝር እና ማስተካከያ) */}
       {activeTab === "employees" && (
-        <div className="card">
-          <h2>Create Employee</h2>
-          <form onSubmit={handleEmployeeSubmit} className="form-group admin-form-top" style={{ display: 'flex', flexDirection: 'column', gap: '15px', maxWidth: '400px' }}>
-            <input
-              type="text"
-              name="name"
-              placeholder="Employee Name"
-              value={employeeForm.name}
-              onChange={handleEmployeeChange}
-              required
-              className="input-field"
-            />
-            <input
-              type="text"
-              name="email"
-              placeholder="Username"
-              value={employeeForm.email}
-              onChange={handleEmployeeChange}
-              required
-              className="input-field"
-            />
-            <input
-              type="password"
-              name="password"
-              placeholder="Password"
-              value={employeeForm.password}
-              onChange={handleEmployeeChange}
-              required
-              className="input-field"
-            />
-            <button type="submit" className="submit-btn" style={{ padding: '10px', background: '#ffd700', color: '#000', fontWeight: 'bold', border: 'none', borderRadius: '5px', cursor: 'pointer' }}>
-              Create Employee
-            </button>
-          </form>
-          {employeeStatus && <p className="status-msg" style={{ marginTop: '10px' }}>{employeeStatus}</p>}
+        <div className="grid admin-grid-gap">
+          <div className="card">
+            <h2>Create Employee</h2>
+            <form onSubmit={handleEmployeeSubmit} className="form-group admin-form-top" style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+              <input
+                type="text"
+                name="name"
+                placeholder="Employee Name"
+                value={employeeForm.name}
+                onChange={handleEmployeeChange}
+                required
+                className="input-field"
+              />
+              <input
+                type="text"
+                name="email"
+                placeholder="Username"
+                value={employeeForm.email}
+                onChange={handleEmployeeChange}
+                required
+                className="input-field"
+              />
+              <input
+                type="password"
+                name="password"
+                placeholder="Password"
+                value={employeeForm.password}
+                onChange={handleEmployeeChange}
+                required
+                className="input-field"
+              />
+              <button type="submit" className="submit-btn" style={{ padding: '10px', background: '#ffd700', color: '#000', fontWeight: 'bold', border: 'none', borderRadius: '5px', cursor: 'pointer' }}>
+                Create Employee
+              </button>
+            </form>
+            {employeeStatus && <p className="status-msg" style={{ marginTop: '10px' }}>{employeeStatus}</p>}
+          </div>
+
+          <div className="card admin-table-card">
+            <h3>📋 የተመዘገቡ ሰራተኞች ዝርዝር</h3>
+            <table className="custom-table responsive-table">
+              <thead>
+                <tr><th>ስም</th><th>ዩዘርኔም</th><th>የፓስወርድ ማስተካከያ</th><th>እርምጃ</th></tr>
+              </thead>
+              <tbody>
+                {employeeList.map((emp) => (
+                  <tr key={emp._id}>
+                    <td data-label="ስም"><strong>{emp.name}</strong></td>
+                    <td data-label="ዩዘርኔም">{emp.email}</td>
+                    <td data-label="የፓስወርድ ማስተካከያ">
+                      <div className="admin-inline-flex admin-wrap-fix">
+                        <input type="text" placeholder="አዲስ ፓስወርድ" value={employeePasswordReset.id === emp._id ? employeePasswordReset.newPassword : ''} onChange={(e) => setEmployeePasswordReset({ id: emp._id, newPassword: e.target.value })} className="input-field admin-table-input" />
+                        <button onClick={() => handleResetEmployeePassword(emp._id)} className="btn-action btn-edit btn-padding-fix">ቀይር</button>
+                      </div>
+                    </td>
+                    <td data-label="እርምጃ">
+                      <div className="admin-inline-flex">
+                        <button onClick={() => { setEditingEmployee(emp._id); setEditEmployeeForm({ name: emp.name, email: emp.email }); }} className="btn-action btn-reply btn-padding-fix">✏</button>
+                        <button onClick={() => handleDeleteEmployee(emp._id)} className="btn-action btn-delete btn-padding-fix">🗑</button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+                {employeeList.length === 0 && (
+                  <tr><td colSpan="4" className="admin-empty-text">ምንም የተመዘገበ ሰራተኛ የለም።</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 
@@ -563,17 +669,34 @@ function AdminDashboard({ user, handleLogout, adminMessages, fetchMessages, newA
         </div>
       )}
 
-      {/* 📝 መረጃ ማስተካከያ ብቅ ባይ (Modal) */}
+      {/* 📝 የአድሚን መረጃ ማስተካከያ ብቅ ባይ (Modal) */}
       {editingAdmin && (
         <div className="modal-overlay">
           <div className="modal-content">
-            <h3>📝 መረጃ ማስተካከያ</h3>
+            <h3>📝 የአድሚን መረጃ ማስተካከያ</h3>
             <form onSubmit={handleUpdateAdmin} className="form-group admin-form-top">
               <input type="text" value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} required className="input-field" />
               <input type="text" value={editForm.email} onChange={(e) => setEditForm({ ...editForm, email: e.target.value })} required className="input-field" />
               <div className="admin-inline-flex admin-form-top">
                 <button type="submit" className="btn-action btn-reply btn-flex-one">አስቀምጥ</button>
                 <button type="button" onClick={() => setEditingAdmin(null)} className="btn-action btn-delete btn-flex-one">አቁም</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 📝 የሰራተኛ መረጃ ማስተካከያ ብቅ ባይ (Modal) */}
+      {editingEmployee && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h3>📝 የሰራተኛ መረጃ ማስተካከያ</h3>
+            <form onSubmit={handleUpdateEmployee} className="form-group admin-form-top">
+              <input type="text" value={editEmployeeForm.name} onChange={(e) => setEditEmployeeForm({ ...editEmployeeForm, name: e.target.value })} required className="input-field" />
+              <input type="text" value={editEmployeeForm.email} onChange={(e) => setEditEmployeeForm({ ...editEmployeeForm, email: e.target.value })} required className="input-field" />
+              <div className="admin-inline-flex admin-form-top">
+                <button type="submit" className="btn-action btn-reply btn-flex-one">አስቀምጥ</button>
+                <button type="button" onClick={() => setEditingEmployee(null)} className="btn-action btn-delete btn-flex-one">አቁም</button>
               </div>
             </form>
           </div>
