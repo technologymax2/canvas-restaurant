@@ -7,7 +7,7 @@ function AdminDashboard({ user, handleLogout, adminMessages, fetchMessages, newA
   const [replyText, setReplyText] = useState({});
   const [adminList, setAdminList] = useState([]);
   const [userList, setUserList] = useState([]); // 👥 አጠቃላይ የደንበኞች ዝርዝር
-  const [activeTab, setActiveTab] = useState('messages'); // messages, admins, users
+  const [activeTab, setActiveTab] = useState('messages'); // messages, admins, employees, users, projects
 
   // 📝 ለአድሚን መረጃ ማስተካከያ ስቴቶች
   const [editingAdmin, setEditingAdmin] = useState(null);
@@ -16,25 +16,25 @@ function AdminDashboard({ user, handleLogout, adminMessages, fetchMessages, newA
 
   // 👥 ለአድሚን የደንበኛ መምረጫ ስቴት (Telegram Style)
   const [selectedUserEmail, setSelectedUserEmail] = useState(null);
-  // እነዚህን ስቴቶች መግለጽህን እርግጠኛ ሁን
-const [projectForm, setProjectForm] = useState({ title: '', link: '', imageUrl: '' });
-const [uploading, setUploading] = useState(false);
-const [employeeForm, setEmployeeForm] = useState({
+  
+  // 🚀 ፕሮጀክት እና ሰራተኛ ስቴቶች
+  const [projectForm, setProjectForm] = useState({ title: '', link: '', imageUrl: '' });
+  const [uploading, setUploading] = useState(false);
+  const [employeeForm, setEmployeeForm] = useState({
     name: '',
     email: '',
     password: ''
-});
+  });
+  const [employeeStatus, setEmployeeStatus] = useState('');
 
-const [employeeStatus, setEmployeeStatus] = useState('');
-
-useEffect(() => {
+  useEffect(() => {
     fetchMessages();
     fetchAdmins();
     fetchUsers();
     const interval = setInterval(() => { fetchMessages(); }, 5000); 
     return () => clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [API_BASE_URL]); // <-- እዚህ ጋር API_BASE_URL ን ጨምርበት
+  }, [API_BASE_URL]);
 
   useEffect(() => {
     fetchMessages();
@@ -45,23 +45,22 @@ useEffect(() => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
- const uniqueUsers = useMemo(() => {
-  // SAFETY CHECK: If adminMessages is undefined or null, return empty array
-  if (!adminMessages || !Array.isArray(adminMessages)) {
-    return [];
-  }
-
-  const users = [];
-  const seenEmails = new Set();
-  
-  adminMessages.forEach(msg => {
-    if (!seenEmails.has(msg.email)) {
-      seenEmails.add(msg.email);
-      users.push({ name: msg.name, email: msg.email });
+  const uniqueUsers = useMemo(() => {
+    if (!adminMessages || !Array.isArray(adminMessages)) {
+      return [];
     }
-  });
-  return users;
-}, [adminMessages]);
+
+    const users = [];
+    const seenEmails = new Set();
+    
+    adminMessages.forEach(msg => {
+      if (!seenEmails.has(msg.email)) {
+        seenEmails.add(msg.email);
+        users.push({ name: msg.name, email: msg.email });
+      }
+    });
+    return users;
+  }, [adminMessages]);
 
   useEffect(() => {
     if (uniqueUsers.length > 0 && !selectedUserEmail) {
@@ -69,9 +68,9 @@ useEffect(() => {
     }
   }, [uniqueUsers, selectedUserEmail]);
 
- const filteredMessages = (adminMessages || []).filter(
-  msg => msg.email === selectedUserEmail
-);
+  const filteredMessages = (adminMessages || []).filter(
+    msg => msg.email === selectedUserEmail
+  );
 
   // 🔄 ሁሉንም አድሚኖች ማምጫ
   const fetchAdmins = async () => {
@@ -115,49 +114,45 @@ useEffect(() => {
       });
       const data = await res.json();
       if (data.success) {
-        setReplyText(prev => ({ ...prev, 'global_admin_chat': '' })); // መጻፊያውን ማጽዳት
-        fetchMessages(); // ቻቱን ወዲያው ለማደስ
+        setReplyText(prev => ({ ...prev, 'global_admin_chat': '' }));
+        fetchMessages();
       }
     } catch (err) {
       alert('መልዕክቱን መላክ አልተቻለም፡ የባክኤንድ ስህተት');
     }
   };
-  // ... ሌሎች ፋንክሽኖችህ (ለምሳሌ fetchAdmins, handleUpdateAdmin ወዘተ) ከላይ አሉ
 
-// 📸 አዲሱ የምስል አፕሎድ ፋንክሽን እዚህ ጋር ይጨመራል
-const handleImageUpload = async (e) => {
-  const file = e.target.files[0];
-  try {
-    // ፋይሉን ወደ ፋንክሽኑ እንልካለን፣ እሱ ሊንኩን ይዞ ይመጣል
-    const imageUrl = await uploadImageToImgBB(file, setUploading);
-    setProjectForm(prev => ({ ...prev, imageUrl: imageUrl }));
-    alert('📸 ምስሉ በስኬት ተጭኗል!');
-  } catch (err) {
-    alert('ምስል መጫን አልተቻለም፡ ' + err.message);
-  }
-};
-// ይህ ፋንክሽን በ AdminDashboard.js ውስጥ ነው ያለው
-const handleProjectSubmit = async (e) => {
-  e.preventDefault();
-  if (!projectForm.imageUrl) return alert('እባክዎ መጀመሪያ ምስል ይምረጡ!');
-  
-  try {
-    const res = await fetch(`${API_BASE_URL}/api/admin/projects`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(projectForm)
-    });
-    
-    if (res.ok) {
-      alert('🎯 ፕሮጀክቱ/ምስሉ ተመዝግቧል እና ለሁሉም ሰው ይታያል!');
-      setProjectForm({ title: '', link: '', imageUrl: '' });
+  // 📸 የምስል አፕሎድ ፋንክሽን
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    try {
+      const imageUrl = await uploadImageToImgBB(file, setUploading);
+      setProjectForm(prev => ({ ...prev, imageUrl: imageUrl }));
+      alert('📸 ምስሉ በስኬት ተጭኗል!');
+    } catch (err) {
+      alert('ምስል መጫን አልተቻለም፡ ' + err.message);
     }
-  } catch (err) { 
-    alert('ስህተት ተፈጥሯል፡ ወደ ዳታቤዝ መላክ አልተቻለም'); 
-  }
-};
+  };
 
-// ... ከዚህ በታች ሌላ ፋንክሽን (ለምሳሌ handleProjectSubmit) ይቀጥላል
+  const handleProjectSubmit = async (e) => {
+    e.preventDefault();
+    if (!projectForm.imageUrl) return alert('እባክዎ መጀመሪያ ምስል ይምረጡ!');
+    
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/admin/projects`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(projectForm)
+      });
+      
+      if (res.ok) {
+        alert('🎯 ፕሮጀክቱ/ምስሉ ተመዝግቧል እና ለሁሉም ሰው ይታያል!');
+        setProjectForm({ title: '', link: '', imageUrl: '' });
+      }
+    } catch (err) { 
+      alert('ስህተት ተፈጥሯል፡ ወደ ዳታቤዝ መላክ አልተቻለም'); 
+    }
+  };
 
   const handleUpdateAdmin = async (e) => {
     e.preventDefault();
@@ -207,7 +202,6 @@ const handleProjectSubmit = async (e) => {
     }
   };
 
-  // 🚫 ተጠቃሚን ብሎክ / አንብሎክ ለማድረግ (Block/Unblock User)
   const handleToggleBlockUser = async (id, isBlocked) => {
     const actionText = isBlocked ? "ከእገዳ ማንሳት" : "ማገድ (Block)";
     if (!window.confirm(`ይህንን ተጠቃሚ በእርግጥ ${actionText} ይፈልጋሉ?`)) return;
@@ -226,7 +220,6 @@ const handleProjectSubmit = async (e) => {
     }
   };
 
-  // 🗑️ ተጠቃሚን ወይም ቻት ያደረገን ሰው ሙሉ በሙሉ ለማጥፋት (Delete User)
   const handleDeleteUser = async (id) => {
     if (!window.confirm("ይህንን ተጠቃሚ አካውንት ሙሉ በሙሉ ማጥፋት ይፈልጋሉ? ይህ ድርጊት አይመለስም!")) return;
     try {
@@ -234,114 +227,95 @@ const handleProjectSubmit = async (e) => {
       if (res.ok) {
         alert('ተጠቃሚው ሙሉ በሙሉ ተሰርዟል!');
         fetchUsers();
-        fetchMessages(); // የግራውን ሳይድባር ጭምር ለማጽዳት
+        fetchMessages();
       }
     } catch (err) {
       alert('ተጠቃሚውን ማጥፋት አልተቻለም');
     }
   };
 
-  
   const handleEmployeeChange = (e) => {
     setEmployeeForm({
-        ...employeeForm,
-        [e.target.name]: e.target.value
+      ...employeeForm,
+      [e.target.name]: e.target.value
     });
-};
+  };
+
   const handleEmployeeSubmit = async (e) => {
-
     e.preventDefault();
-
     try {
-
-        const res = await fetch(`${API_BASE_URL}/api/admin/add-employee`,{
-
-            method:'POST',
-
-            headers:{
-                'Content-Type':'application/json'
-            },
-
-            body:JSON.stringify(employeeForm)
-
-        });
-
-        const data = await res.json();
-
-        if(data.success){
-
-            setEmployeeStatus("✅ Employee created.");
-
-            setEmployeeForm({
-                name:'',
-                email:'',
-                password:''
-            });
-
-        }else{
-
-            setEmployeeStatus(data.error);
-
-        }
-
-    }catch{
-
-        setEmployeeStatus("Server error.");
-
-    }
-
-};
-  
- const handleDeleteProject = async (id) => {
-  if (window.confirm('ይህንን ፕሮጀክት በእርግጥ ማጥፋት ይፈልጋሉ?')) {
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/admin/projects/${id}`, {
-        method: 'DELETE',
+      const res = await fetch(`${API_BASE_URL}/api/admin/add-employee`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(employeeForm)
       });
-      if (res.ok) {
-        alert('ፕሮጀክቱ ተሰርዟል!');
-        // እዚህ ጋር setProjects ን መጠቀምህ ነው ማስጠንቀቂያውን የሚያጠፋው
-        setProjects(prev => prev.filter(p => p._id !== id)); 
+      const data = await res.json();
+      if (data.success) {
+        setEmployeeStatus("✅ Employee created successfully.");
+        setEmployeeForm({
+          name: '',
+          email: '',
+          password: ''
+        });
+      } else {
+        setEmployeeStatus(data.error || "Failed to create employee.");
       }
-    } catch (err) {
-      alert('ማጥፋት አልተቻለም');
+    } catch {
+      setEmployeeStatus("Server error.");
     }
-  }
-};
+  };
+
+  const handleDeleteProject = async (id) => {
+    if (window.confirm('ይህንን ፕሮጀክት በእርግጥ ማጥፋት ይፈልጋሉ?')) {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/admin/projects/${id}`, {
+          method: 'DELETE',
+        });
+        if (res.ok) {
+          alert('ፕሮጀክቱ ተሰርዟል!');
+          setProjects(prev => prev.filter(p => p._id !== id)); 
+        }
+      } catch (err) {
+        alert('ማጥፋት አልተቻለም');
+      }
+    }
+  };
 
   return (
     <div className="admin-dashboard-container">
-      
       <div className="admin-header">
         <h2>👑 የባለሙያ መቆጣጠሪያ ሰሌዳ (Admin Panel)</h2>
         <button onClick={handleLogout} className="btn-logout">ውጣ (Logout)</button>
       </div>
 
-  {/* 🗂️ ታብ መምረጫ ቁልፎች (አንድ ላይ ብቻ ተጠቀም) */}
-<div className="admin-tabs-nav">
-  <button 
-    className={`tab-nav-btn ${activeTab === 'messages' ? 'active-tab' : ''}`} 
-    onClick={() => setActiveTab('messages')}>💬 መልዕክቶች</button>
-  <button 
-    className={`tab-nav-btn ${activeTab === 'projects' ? 'active-tab' : ''}`} 
-    onClick={() => setActiveTab('projects')}>🚀 ፖርትፎሊዮ</button>
-  <button 
-    className={`tab-nav-btn ${activeTab === 'admins' ? 'active-tab' : ''}`} 
-    onClick={() => setActiveTab('admins')}>👥 አድሚኖች</button>
-      <button
-    className={`tab-nav-btn ${activeTab === 'employees' ? 'active-tab' : ''}`}
-    onClick={() => setActiveTab('employees')}
->
-    👨‍🍳 Employees
-</button>
-  <button 
-    className={`tab-nav-btn ${activeTab === 'users' ? 'active-tab' : ''}`} 
-    onClick={() => setActiveTab('users')}>👤 ደንበኞች</button>
-</div>
-{activeTab === 'projects' && (
+      {/* 🗂️ ታብ መምረጫ ቁልፎች */}
+      <div className="admin-tabs-nav">
+        <button 
+          className={`tab-nav-btn ${activeTab === 'messages' ? 'active-tab' : ''}`} 
+          onClick={() => setActiveTab('messages')}>💬 መልዕክቶች</button>
+        <button 
+          className={`tab-nav-btn ${activeTab === 'projects' ? 'active-tab' : ''}`} 
+          onClick={() => setActiveTab('projects')}>🚀 ፖርትፎሊዮ</button>
+        <button 
+          className={`tab-nav-btn ${activeTab === 'admins' ? 'active-tab' : ''}`} 
+          onClick={() => setActiveTab('admins')}>👥 አድሚኖች</button>
+        <button
+          className={`tab-nav-btn ${activeTab === 'employees' ? 'active-tab' : ''}`}
+          onClick={() => setActiveTab('employees')}
+        >
+          👨‍🍳 Employees
+        </button>
+        <button 
+          className={`tab-nav-btn ${activeTab === 'users' ? 'active-tab' : ''}`} 
+          onClick={() => setActiveTab('users')}>👤 ደንበኞች</button>
+      </div>
+
+      {/* 🚀 ፖርትፎሊዮ ታብ */}
+      {activeTab === 'projects' && (
         <div className="card">
           <h3>🚀 ፖርትፎሊዮ ማስተዳደሪያ</h3>
-          
           <div className="project-form-section" style={{marginBottom: '30px', paddingBottom: '20px', borderBottom: '1px solid #333'}}>
             <input type="text" placeholder="የፕሮጀክቱ ስም" value={projectForm.title} onChange={(e) => setProjectForm({...projectForm, title: e.target.value})} className="input-field" />
             <input type="url" placeholder="የፕሮጀክቱ ሊንክ" value={projectForm.link} onChange={(e) => setProjectForm({...projectForm, link: e.target.value})} className="input-field" />
@@ -372,13 +346,11 @@ const handleProjectSubmit = async (e) => {
         </div>
       )}
       
-         {/* 1️⃣ ታብ 1፦ የቴሌግራም ቻት መልዕክቶች */}
+      {/* 💬 መልዕክቶች ታብ */}
       {activeTab === 'messages' && (
         <>
           <h3 className="admin-section-heading">💬 የደንበኞች የቻት ማዘዣዎች (Telegram Split Mode)</h3>
           <div className="telegram-admin-layout">
-            
-            {/* 👥 የግራ ሳይድባር፦ የደንበኞች ዝርዝር */}
             <div className="telegram-sidebar">
               <div className="sidebar-header">👥 ውይይቶች ({uniqueUsers.length})</div>
               <div className="sidebar-users-list">
@@ -399,7 +371,6 @@ const handleProjectSubmit = async (e) => {
               </div>
             </div>
 
-            {/* ✉ የቀኝ ክፍል፦ የተመረጠው ሰው የቻት ሳጥን */}
             <div className="telegram-chat-window">
               {selectedUserEmail ? (
                 <>
@@ -407,11 +378,9 @@ const handleProjectSubmit = async (e) => {
                     💬 የ <strong>{uniqueUsers.find(u => u.email === selectedUserEmail)?.name}</strong> የቻት መልዕክቶች
                   </div>
                   
-                  {/* የቻት ታሪክ ማሳያ ክፍል */}
                   <div className="chat-window-body">
                     {filteredMessages.map((msg) => (
                       <div key={msg._id} className="admin-chat-block">
-                        {/* የደንበኛው መልዕክት (አድሚኑ ራሱ የጻፈው ካልሆነ ብቻ ያሳያል) */}
                         {!msg.message.startsWith('[የባለሙያ መልዕክት]') && (
                           <div className="admin-user-msg-bubble">
                             <p>{msg.message}</p>
@@ -419,7 +388,6 @@ const handleProjectSubmit = async (e) => {
                           </div>
                         )}
                         
-                        {/* የአድሚን ምላሽ (ሰማያዊ ባብል) */}
                         {msg.reply && (
                           <div className="admin-reply-msg-bubble">
                             <span className="reply-label">የእርስዎ መልዕክት፦</span>
@@ -434,7 +402,6 @@ const handleProjectSubmit = async (e) => {
                     ))}
                   </div>
 
-                  {/* 🚀 አድሚኑ በማንኛውም ጊዜ ራሱ መጻፍ የሚችልበት የታችኛው ሳጥን */}
                   <div className="admin-chat-footer-input" style={{ padding: '20px', background: '#161b22', borderTop: '1px solid #30363d', display: 'flex', gap: '10px' }}>
                     <input 
                       type="text" 
@@ -466,7 +433,7 @@ const handleProjectSubmit = async (e) => {
         </>
       )}
 
-      {/* 2️⃣ ታብ 2፦ የአድሚኖች ማስተዳደሪያ */}
+      {/* 👥 አድሚኖች ታብ */}
       {activeTab === 'admins' && (
         <div className="grid admin-grid-gap">
           <div className="card admin-form-card">
@@ -479,54 +446,6 @@ const handleProjectSubmit = async (e) => {
             </form>
             {adminAddStatus && <p className="status-msg">{adminAddStatus}</p>}
           </div>
-              {activeTab === "employees" && (
-
-<div className="card">
-
-<h2>Create Employee</h2>
-
-<form onSubmit={handleEmployeeSubmit}>
-
-<input
-type="text"
-name="name"
-placeholder="Employee Name"
-value={employeeForm.name}
-onChange={handleEmployeeChange}
-required
-/>
-
-<input
-type="text"
-name="email"
-placeholder="Username"
-value={employeeForm.email}
-onChange={handleEmployeeChange}
-required
-/>
-
-<input
-type="password"
-name="password"
-placeholder="Password"
-value={employeeForm.password}
-onChange={handleEmployeeChange}
-required
-/>
-
-<button type="submit">
-
-Create Employee
-
-</button>
-
-</form>
-
-<p>{employeeStatus}</p>
-
-</div>
-
-)}
 
           <div className="card admin-table-card">
             <h3>📋 የተመዘገቡ አድሚኖች ዝርዝር</h3>
@@ -559,7 +478,47 @@ Create Employee
         </div>
       )}
 
-      {/* 3️⃣ ታብ 3፦ የተጠቃሚዎች ማስተዳደሪያ */}
+      {/* 👨‍🍳 Employees ታብ */}
+      {activeTab === "employees" && (
+        <div className="card">
+          <h2>Create Employee</h2>
+          <form onSubmit={handleEmployeeSubmit} className="form-group admin-form-top" style={{ display: 'flex', flexDirection: 'column', gap: '15px', maxWidth: '400px' }}>
+            <input
+              type="text"
+              name="name"
+              placeholder="Employee Name"
+              value={employeeForm.name}
+              onChange={handleEmployeeChange}
+              required
+              className="input-field"
+            />
+            <input
+              type="text"
+              name="email"
+              placeholder="Username"
+              value={employeeForm.email}
+              onChange={handleEmployeeChange}
+              required
+              className="input-field"
+            />
+            <input
+              type="password"
+              name="password"
+              placeholder="Password"
+              value={employeeForm.password}
+              onChange={handleEmployeeChange}
+              required
+              className="input-field"
+            />
+            <button type="submit" className="submit-btn" style={{ padding: '10px', background: '#ffd700', color: '#000', fontWeight: 'bold', border: 'none', borderRadius: '5px', cursor: 'pointer' }}>
+              Create Employee
+            </button>
+          </form>
+          {employeeStatus && <p className="status-msg" style={{ marginTop: '10px' }}>{employeeStatus}</p>}
+        </div>
+      )}
+
+      {/* 👤 ደንበኞች ታብ */}
       {activeTab === 'users' && (
         <div className="card admin-full-width-card">
           <h3>👤 የተመዘገቡ እና ቻት ያደረጉ ደንበኞች (የብሎክ እና ማጥፊያ ሰሌዳ)</h3>
