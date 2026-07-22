@@ -29,7 +29,7 @@ function Home({ setCurrentScreen }) {
           እንኳን ወደ Canvas-Restaurant በሰላም መጡ!
         </h1>
         <p className="text-xl md:text-2xl mb-6 md:mb-8 text-gray-100 relative z-10 drop-shadow-md">
-          ምን ይፈልጋሉ? ሁሉም እኛ ጋር ይገኛል
+          ምን ይፈልጋሉ? ሁሉም እኛ ጋር ይገኛል!
         </p>
         <button 
           onClick={() => setCurrentScreen('order')} 
