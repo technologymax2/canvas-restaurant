@@ -49,6 +49,7 @@ function AdminDashboard({ user, handleLogout, adminMessages, fetchMessages, newA
     fetchAdmins();
     fetchEmployees();
     fetchUsers();
+    fetchProjects();
     const interval = setInterval(() => { fetchMessages(); }, 5000); 
     return () => clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -80,6 +81,19 @@ function AdminDashboard({ user, handleLogout, adminMessages, fetchMessages, newA
   const filteredMessages = (adminMessages || []).filter(
     msg => msg.email === selectedUserEmail
   );
+
+  // 🔄 ፕሮጀክቶችን ከሰርቨር አምጥቶ ስክሪን ላይ የሚያሳይ ተግባር
+const fetchProjects = async () => {
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/projects`);
+    const data = await res.json();
+    if (data.success) {
+      setProjects(data.projects); // ፕሮጀክቶቹን በ state ውስጥ ያስቀምጣል
+    }
+  } catch (err) {
+    console.error('ፕሮጀክቶችን ማምጣት አልተቻለም');
+  }
+};
 
   // 🔄 ሁሉንም አድሚኖች ማምጫ
   const fetchAdmins = async () => {
@@ -168,6 +182,7 @@ function AdminDashboard({ user, handleLogout, adminMessages, fetchMessages, newA
       if (res.ok) {
         alert('🎯 ፕሮጀክቱ/ምስሉ ተመዝግቧል እና ለሁሉም ሰው ይታያል!');
         setProjectForm({ title: '', link: '', imageUrl: '' });
+        fetchProjects();
       }
     } catch (err) { 
       alert('ስህተት ተፈጥሯል፡ ወደ ዳታቤዝ መላክ አልተቻለም'); 
