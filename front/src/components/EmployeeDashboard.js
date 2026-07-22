@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import './AdminDashboard.css'; // ከስታይል አቀማመጥ አንፃር ተመሳሳይ እንዲሆን
+import React, { useState, useEffect, useCallback } from 'react';
+import './AdminDashboard.css';
 
 function EmployeeDashboard({ user, handleLogout, API_BASE_URL }) {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
 
   // 🔄 የደንበኞችን መልዕክቶች እና ትዕዛዞች ከሰርቨር ማምጫ
-  const fetchEmployeeMessages = async () => {
+  const fetchEmployeeMessages = useCallback(async () => {
     try {
       const res = await fetch(`${API_BASE_URL}/api/messages`);
       const data = await res.json();
@@ -18,33 +18,13 @@ function EmployeeDashboard({ user, handleLogout, API_BASE_URL }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [API_BASE_URL]);
 
   useEffect(() => {
     fetchEmployeeMessages();
     const interval = setInterval(fetchEmployeeMessages, 5000); // በየ 5 ሰከንዱ ማደሻ
     return () => clearInterval(interval);
-  }, [API_BASE_URL]);
-
-  // ✉️ ለደንበኛ ምላሽ ለመስጠት (አስፈላጊ ሆኖ ሲገኝ)
-  const handleReply = async (msgId, replyText) => {
-    if (!replyText || !replyText.trim()) return alert('እባክዎ ምላሽ ይጻፉ!');
-
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/admin/reply/${msgId}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reply: replyText })
-      });
-      const data = await res.json();
-      if (data.success) {
-        alert('ምላሽ ተልኳል!');
-        fetchEmployeeMessages();
-      }
-    } catch (err) {
-      alert('ምላሽ መላክ አልተቻለም');
-    }
-  };
+  }, [fetchEmployeeMessages]);
 
   return (
     <div className="admin-dashboard-container" style={{ padding: '20px', color: '#fff' }}>
