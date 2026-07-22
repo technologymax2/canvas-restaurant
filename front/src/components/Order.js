@@ -1,13 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import './Footer.css'; // ወይም የራሱ የስታይል ፋይል ካለው መቀየር ይቻላል
+import React, { useState, useEffect, useCallback } from 'react';
+import './Footer.css';
 
 function Order({ user, API_BASE_URL }) {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // የደንበኛውን ትዕዛዞች ከሰርቨር ማምጫ
-  const fetchUserOrders = async () => {
+  // 🔄 የደንበኛውን ትዕዛዞች ከሰርቨር ማምጫ
+  const fetchUserOrders = useCallback(async () => {
     if (!user || !user.email) {
       setLoading(false);
       return;
@@ -26,13 +26,13 @@ function Order({ user, API_BASE_URL }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, API_BASE_URL]);
 
   useEffect(() => {
     fetchUserOrders();
     const interval = setInterval(fetchUserOrders, 5000); // በየ 5 ሰከንዱ ማደሻ
     return () => clearInterval(interval);
-  }, [user, API_BASE_URL]);
+  }, [fetchUserOrders]);
 
   if (!user) {
     return (
