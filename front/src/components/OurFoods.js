@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import './Footer.css'; // ወይም የራሱ የስታይል ፋይል ካለው መቀየር ይቻላል
+import React, { useState, useEffect, useCallback } from 'react';
+import './Footer.css';
 
 function OurFoods({ API_BASE_URL, addToCart }) {
   const [foods, setFoods] = useState([]);
@@ -7,7 +7,7 @@ function OurFoods({ API_BASE_URL, addToCart }) {
   const [error, setError] = useState('');
 
   // 🔄 ዋና ዋና ምግቦችን ከሰርቨር ማምጫ
-  const fetchOurFoods = async () => {
+  const fetchOurFoods = useCallback(async () => {
     try {
       const res = await fetch(`${API_BASE_URL}/api/foods`);
       const data = await res.json();
@@ -21,11 +21,11 @@ function OurFoods({ API_BASE_URL, addToCart }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [API_BASE_URL]);
 
   useEffect(() => {
     fetchOurFoods();
-  }, [API_BASE_URL]);
+  }, [fetchOurFoods]);
 
   return (
     <div className="our-foods-container" style={{ padding: '30px', maxWidth: '1000px', margin: '0 auto', color: '#fff' }}>
