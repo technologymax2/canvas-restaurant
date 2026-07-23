@@ -9,14 +9,19 @@ function OurFoods({ API_BASE_URL, addToCart }) {
   // 🔄 ዋና ዋና ምግቦችን ከሰርቨር ማምጫ
   const fetchOurFoods = useCallback(async () => {
     try {
+      setLoading(true);
       const res = await fetch(`${API_BASE_URL}/api/foods`);
       const data = await res.json();
+      
       if (data.success) {
+        // ከባክኤንድ የሚመጣውን መረጃ (foods ወይም menu) በመያዝ ላይ
         setFoods(data.foods || data.menu || []);
+        setError('');
       } else {
         setError('ምግቦቹን ማምጣት አልተቻለም');
       }
     } catch (err) {
+      console.error('Fetch error:', err);
       setError('የሰርቨር ስህተት አጋጥሟል');
     } finally {
       setLoading(false);
