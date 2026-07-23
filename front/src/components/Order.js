@@ -47,12 +47,12 @@ function Order({ user, API_BASE_URL }) {
       {/* 🌟 Header Section */}
       <div className="bg-gradient-to-br from-gray-900 to-gray-950 p-6 sm:p-8 rounded-2xl border border-gray-800 shadow-xl mb-8 text-center">
         <h2 className="text-2xl sm:text-3xl font-bold text-blue-400 mb-2">📦 የእርስዎ ትዕዛዞች እና የክፍያ ታሪክ</h2>
-        <p className="text-gray-400 text-sm sm:text-base">የማዘዣዎትን ሁኔታ እና የሰራተኞችን ምላሽ እዚህ በቅርበት መከታተል ይችላሉ።</p>
+        <p className="text-gray-400 text-sm sm:text-base">የማዘዣዎትን ሁኔታ፣ የታዘዙ ምግቦችን እና የክፍያ ስክሪንሾት እዚህ መከታተል ይችላሉ።</p>
       </div>
 
       {loading ? (
         <div className="text-center py-12 bg-gray-900 rounded-2xl border border-gray-800 text-gray-400 animate-pulse">
-          ⏳ በመጫ ላይ...
+          ⏳ በመጫን ላይ...
         </div>
       ) : error ? (
         <div className="text-center py-12 bg-gray-900 rounded-2xl border border-red-900/50 text-red-400 font-medium">
@@ -73,8 +73,15 @@ function Order({ user, API_BASE_URL }) {
               badgeStyle = 'bg-blue-500/10 text-blue-400 border-blue-500/30';
             } else if (ord.status === 'Cancelled') {
               badgeStyle = 'bg-red-500/10 text-red-400 border-red-500/30';
-            } else if (ord.status === 'ምላሽ ተሰጥቷል') {
-              badgeStyle = 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30';
+            }
+
+            // የክፍያ ስክሪንሾት ዩአርኤልን ከሞዴል ወይም ከሜሴጅ ማውጣት
+            let extractedScreenshotUrl = ord.paymentScreenshotUrl || '';
+            if (!extractedScreenshotUrl && ord.message && ord.message.includes('የክፍያ ስክሪንሾት:')) {
+              const parts = ord.message.split('የክፍያ ስክሪንሾት:');
+              if (parts[1]) {
+                extractedScreenshotUrl = parts[1].trim().split(' ')[0];
+              }
             }
 
             return (
@@ -91,11 +98,63 @@ function Order({ user, API_BASE_URL }) {
                   </span>
                 </div>
 
-                <div className="space-y-3">
-                  <p className="text-gray-200 text-sm sm:text-base leading-relaxed">
-                    <strong className="text-gray-400 font-medium">📝 ዝርዝር / መልዕክት:</strong> {ord.message}
+                <div className="space-y-4">
+                  <p className="text-gray-300 text-sm sm:text-base leading-relaxed">
+                    <strong className="text-gray-400 font-medium">ጠረጴዛ ቁጥር:</strong> {ord.tableNumber || 'አልተገለጸም'}
                   </p>
 
+                  {/* 🍲 የታዘዙ ምግቦች ዝርዝር እና ዋጋ */}
+                  {ord.items && (
+                    <div className="bg-gray-950 p-4 rounded-xl border border-gray-800">
+                      <strong className="text-gray-400 text-xs uppercase tracking-wider block mb-2">የታዘዙ ምግቦች:</strong>
+                      <ul className="divide-y divide-gray-800/60">
+                        {(() => {
+                          try {
+                            const parsedItems = typeof ord.items === 'string' ? JSON.parse(ord.items) : ord.items;
+                            return parsedItems.map((item, idx) => (
+                              <li key={idx} className="py-2 flex justify-between items-center text-sm">
+                                <div>
+                                  <span className="text-white font-medium">{item.name}</span>
+                                  <span className="text-gray-400 text-xs ml-2">(ብዛት: {item.quantity || 1})</span>
+                                </div>
+                                <span className="text-emerald-400 font-semibold">ብር {item.price}</span>
+                              </li>
+                            ));
+                          } catch (e) {
+                            return <p className="text-sm text-gray-400">{ord.message}</p>;
+                          }
+                        })()}
+                      </ul>
+                      <div className="mt-3 pt-2 border-t border-gray-800 flex justify-between items-center text-sm font-bold">
+                        <span className="text-gray-300">አጠቃላይ ዋጋ:</span>
+                        <span className="text-emerald-400 text-base">ብር {ord.totalAmount || '---'}</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 🖼️ የክፍያ ስክሪንሾት ምስል ማሳያ */}
+                  {extractedScreenshotUrl && (
+                    <div className="bg-gray-950 p-4 rounded-xl border border-gray-800 inline-block w-full sm:w-auto">
+                      <p className="text-xs text-blue-400 font-semibold mb-2">🖼️ የክፍያ ማረጋገጫ ስክሪንሾት:</p>
+                      <a href={extractedScreenshotUrl} target="_blank" rel="noopener noreferrer">
+                        <img 
+                          src={extractedScreenshotUrl} 
+                          alt="Payment Screenshot" 
+                          className="w-full sm:w-48 h-48 object-cover rounded-lg border border-gray-800 hover:opacity-95 transition-opacity" 
+                        />
+                      </a>
+                      <a 
+                        href={extractedScreenshotUrl} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="inline-block mt-2 text-blue-400 text-xs underline hover:text-blue-300"
+                      >
+                        ምስሉን በትልቅ መጠን ይክፈቱ (Open Full Image)
+                      </a>
+                    </div>
+                  )}
+
+                  {/* 👑 የሰራተኛ ምላሽ */}
                   {ord.reply && (
                     <div className="bg-gray-950 p-4 rounded-xl border-l-4 border-emerald-500 border border-gray-800">
                       <p className="text-emerald-400 text-sm font-medium">
