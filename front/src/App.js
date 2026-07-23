@@ -31,76 +31,78 @@ function App() {
   }, [currentScreen, user]);
 
   const [adminMessages, setAdminMessages] = useState([]);
-const [projects, setProjects] = useState([]);
+  const [projects, setProjects] = useState([]);
 
-const [newAdminForm, setNewAdminForm] = useState({
-  name: "",
-  email: "",
-  password: ""
-});
+  const [newAdminForm, setNewAdminForm] = useState({
+    name: "",
+    email: "",
+    password: ""
+  });
 
-const [adminAddStatus, setAdminAddStatus] = useState("");
+  const [adminAddStatus, setAdminAddStatus] = useState("");
+  
   const fetchMessages = async () => {
-  try {
-    const res = await fetch(`${API_BASE_URL}/api/admin/messages`);
-    const data = await res.json();
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/admin/messages`);
+      const data = await res.json();
 
-    if (data.success) {
-      setAdminMessages(data.messages);
+      if (data.success) {
+        setAdminMessages(data.messages);
+      }
+    } catch (err) {
+      console.error(err);
     }
-  } catch (err) {
-    console.error(err);
-  }
-};
+  };
 
   const handleDeleteMessage = async (id) => {
-  try {
-    await fetch(`${API_BASE_URL}/api/admin/messages/${id}`, {
-      method: "DELETE"
-    });
+    try {
+      await fetch(`${API_BASE_URL}/api/admin/messages/${id}`, {
+        method: "DELETE"
+      });
 
-    fetchMessages();
-  } catch (err) {
-    console.error(err);
-  }
-};
+      fetchMessages();
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const handleNewAdminChange = (e) => {
-  setNewAdminForm({
-    ...newAdminForm,
-    [e.target.name]: e.target.value
-  });
-};
+    setNewAdminForm({
+      ...newAdminForm,
+      [e.target.name]: e.target.value
+    });
+  };
 
   const handleAddAdminSubmit = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  try {
-    const res = await fetch(`${API_BASE_URL}/api/admin/add-admin`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(newAdminForm)
-    });
-
-    const data = await res.json();
-
-    if (data.success) {
-      setAdminAddStatus("Admin created.");
-
-      setNewAdminForm({
-        name: "",
-        email: "",
-        password: ""
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/admin/add-admin`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(newAdminForm)
       });
-    } else {
-      setAdminAddStatus(data.error);
+
+      const data = await res.json();
+
+      if (data.success) {
+        setAdminAddStatus("Admin created.");
+
+        setNewAdminForm({
+          name: "",
+          email: "",
+          password: ""
+        });
+      } else {
+        setAdminAddStatus(data.error);
+      }
+    } catch {
+      setAdminAddStatus("Server error.");
     }
-  } catch {
-    setAdminAddStatus("Server error.");
-  }
-};
+  };
+
   const handleAuthChange = (e) => {
     setAuthForm({ ...authForm, [e.target.name]: e.target.value });
   };
@@ -138,7 +140,7 @@ const [adminAddStatus, setAdminAddStatus] = useState("");
 
   const addToCart = (item) => {
     setCart([...cart, item]);
-    alert(`${item.title} ወደ ካርታ ተጨምሯል!`);
+    alert(`${item.name || item.title} ወደ ካርታ ተጨምሯል!`);
   };
 
   const handleLogout = () => {
@@ -183,7 +185,10 @@ const [adminAddStatus, setAdminAddStatus] = useState("");
       <main>
         {currentScreen === 'home' && <Home setCurrentScreen={setCurrentScreen} />}
         {currentScreen === 'menu' && <FoodMenu addToCart={addToCart} />}
-        {currentScreen === 'our-foods' && <OurFoods addToCart={addToCart} />}
+        
+        {/* OurFoods ኮምፖነንት API_BASE_URL ተካትቶበታል */}
+        {currentScreen === 'our-foods' && <OurFoods API_BASE_URL={API_BASE_URL} addToCart={addToCart} />}
+        
         {currentScreen === 'order' && <Order />}
         {currentScreen === 'contact' && <ContactUs />}
         {currentScreen === 'cart' && <Cart cart={cart} />}
@@ -191,24 +196,19 @@ const [adminAddStatus, setAdminAddStatus] = useState("");
         {/* Dashboards - Secured by Role */}
         {currentScreen === 'admin-dashboard' && user?.role === 'admin' && (
          <AdminDashboard
-    user={user}
-    handleLogout={handleLogout}
-
-    adminMessages={adminMessages}
-    fetchMessages={fetchMessages}
-
-    newAdminForm={newAdminForm}
-    handleNewAdminChange={handleNewAdminChange}
-    handleAddAdminSubmit={handleAddAdminSubmit}
-    adminAddStatus={adminAddStatus}
-
-    API_BASE_URL={API_BASE_URL}
-
-    handleDeleteMessage={handleDeleteMessage}
-
-    projects={projects}
-    setProjects={setProjects}
-/>
+            user={user}
+            handleLogout={handleLogout}
+            adminMessages={adminMessages}
+            fetchMessages={fetchMessages}
+            newAdminForm={newAdminForm}
+            handleNewAdminChange={handleNewAdminChange}
+            handleAddAdminSubmit={handleAddAdminSubmit}
+            adminAddStatus={adminAddStatus}
+            API_BASE_URL={API_BASE_URL}
+            handleDeleteMessage={handleDeleteMessage}
+            projects={projects}
+            setProjects={setProjects}
+          />
         )}
         {currentScreen === 'employee-dashboard' && user?.role === 'employee' && (
           <EmployeeDashboard handleLogout={handleLogout} API_BASE_URL={API_BASE_URL} />
