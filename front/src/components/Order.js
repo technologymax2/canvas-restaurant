@@ -47,7 +47,7 @@ function Order({ user, API_BASE_URL }) {
       {/* 🌟 Header Section */}
       <div className="bg-gradient-to-br from-gray-900 to-gray-950 p-6 sm:p-8 rounded-2xl border border-gray-800 shadow-xl mb-8 text-center">
         <h2 className="text-2xl sm:text-3xl font-bold text-blue-400 mb-2">📦 የእርስዎ ትዕዛዞች እና የክፍያ ታሪክ</h2>
-        <p className="text-gray-400 text-sm sm:text-base">የማዘዣዎትን ሁኔታ፣ የታዘዙ ምግቦችን እና የክፍያ ስክሪንሾት እዚህ መከታተል ይችላሉ።</p>
+        <p className="text-gray-400 text-sm sm:text-base">የልዩ ትዕዛዝ ቁጥርዎን፣ የምግብ ዝርዝሮችን እና የክፍያ ስክሪንሾት እዚህ መከታተል ይችላሉ።</p>
       </div>
 
       {loading ? (
@@ -64,8 +64,7 @@ function Order({ user, API_BASE_URL }) {
         </div>
       ) : (
         <div className="grid gap-6">
-          {orders.map((ord) => {
-            // Tailwind status badge colors
+          {orders.map((ord, index) => {
             let badgeStyle = 'bg-amber-500/10 text-amber-400 border-amber-500/30';
             if (ord.status === 'Approved') {
               badgeStyle = 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30';
@@ -75,7 +74,7 @@ function Order({ user, API_BASE_URL }) {
               badgeStyle = 'bg-red-500/10 text-red-400 border-red-500/30';
             }
 
-            // የክፍያ ስክሪንሾት ዩአርኤልን ከሞዴል ወይም ከሜሴጅ ማውጣት
+            // የክፍያ ስክሪንሾት ዩአርኤልን ማውጣት
             let extractedScreenshotUrl = ord.paymentScreenshotUrl || '';
             if (!extractedScreenshotUrl && ord.message && ord.message.includes('የክፍያ ስክሪንሾት:')) {
               const parts = ord.message.split('የክፍያ ስክሪንሾት:');
@@ -84,24 +83,30 @@ function Order({ user, API_BASE_URL }) {
               }
             }
 
+            // ልዩ የትዕዛዝ ቁጥር (Unique Order Number) ከሰርቨር ወይም ርዝመት በመውሰድ ላይ
+            const uniqueOrderNo = ord.orderNumber || `#${ord._id ? ord._id.slice(-6).toUpperCase() : index + 1001}`;
+
             return (
               <div 
-                key={ord._id} 
+                key={ord._id || index} 
                 className="bg-gray-900 rounded-2xl border border-gray-800 p-6 shadow-lg hover:border-blue-500/50 transition-all duration-200"
               >
+                {/* 🔖 የትዕዛዝ ቁጥር እና ስታተስ ማሳያ */}
                 <div className="flex flex-wrap justify-between items-center gap-3 mb-4 pb-3 border-b border-gray-800">
-                  <span className="text-gray-400 text-xs sm:text-sm flex items-center gap-1.5">
-                    📅 {new Date(ord.date).toLocaleString()}
-                  </span>
+                  <div>
+                    <span className="text-xs text-gray-400 block">ልዩ ትዕዛዝ ቁጥር (Order No):</span>
+                    <span className="text-blue-400 font-bold text-base tracking-wider">{uniqueOrderNo}</span>
+                  </div>
                   <span className={`px-3 py-1 rounded-full text-xs font-bold border ${badgeStyle}`}>
                     {ord.status || 'በጥበቃ ላይ'}
                   </span>
                 </div>
 
                 <div className="space-y-4">
-                  <p className="text-gray-300 text-sm sm:text-base leading-relaxed">
-                    <strong className="text-gray-400 font-medium">ጠረጴዛ ቁጥር:</strong> {ord.tableNumber || 'አልተገለጸም'}
-                  </p>
+                  <div className="flex justify-between text-xs text-gray-400">
+                    <span>📅 ቀን: {new Date(ord.date).toLocaleString()}</span>
+                    <span>ጠረጴዛ ቁጥር: <strong className="text-white">{ord.tableNumber || 'አልተገለጸም'}</strong></span>
+                  </div>
 
                   {/* 🍲 የታዘዙ ምግቦች ዝርዝር እና ዋጋ */}
                   {ord.items && (
