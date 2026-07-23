@@ -52,7 +52,8 @@ const contactSchema = new mongoose.Schema({
   email: { type: String, required: true }, // ከደንበኛው email ጋር የሚገናኝበት
   message: { type: String, required: true },
   reply: { type: String, default: '' }, // የአድሚን መልስ ማከማቻ
-  status: { type: String, default: 'በጥበቃ ላይ' }, // 'በጥበቃ ላይ' ወይም 'ምላሽ ተሰጥቷል'
+  status: { type: String, default: 'በጥበቃ ላይ' }, // 'በጥበቃ ላይ', 'Approved', 'Cancelled' ወዘተ
+  handledBy: { type: String, default: '' }, // ትዕዛዙን ያጸደቀው/የሰረዘው ሰራተኛ ስም
   date: { type: Date, default: Date.now }
 });
 const Contact = mongoose.model('Contact', contactSchema);
@@ -66,7 +67,7 @@ const projectSchema = new mongoose.Schema({
 });
 const Project = mongoose.model('Project', projectSchema);
 
-// መ. የምግብ/ምናሌ ስኬማ (Food Schema - ከ ImgBB ሊንክ ጋር የሚጣጣም)
+// መ. የምግብ/ምናሌ ስኬማ (Food Schema)
 const foodSchema = new mongoose.Schema({
   name: { type: String, required: true },
   description: { type: String, required: true },
@@ -100,7 +101,7 @@ async function seedFirstAdmin() {
   }
 }
 
-// 🌐 ምስል ወደ ImgBB የሚልክ ረዳት ፋንክሽን (Helper Function)
+// 🌐 ምስል ወደ ImgBB የሚልክ ረዳት ፋንክሽን
 async function uploadToImgBB(filePath) {
   try {
     const form = new FormData();
@@ -111,7 +112,7 @@ async function uploadToImgBB(filePath) {
     });
 
     if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath); // ጊዜያዊ ፋይሉን እናጥፋዋለን
+      fs.unlinkSync(filePath);
     }
 
     if (response.data && response.data.success) {
@@ -127,10 +128,9 @@ async function uploadToImgBB(filePath) {
 }
 
 // ==========================================
-// 🍲 የምግብ ማስተዳደሪያ መስመሮች (FOOD CRUD ROUTES)
+// 3. የምግብ ማስተዳደሪያ መስመሮች (FOOD CRUD ROUTES)
 // ==========================================
 
-// 1. ምግብ መመዝገቢያ (CREATE) - ከ ImgBB ፋይል ሰቀላ ጋር
 app.post('/api/foods', upload.single('image'), async (req, res) => {
   try {
     const { name, description, price } = req.body;
@@ -153,7 +153,6 @@ app.post('/api/foods', upload.single('image'), async (req, res) => {
   }
 });
 
-// 2. ምግቦችን ማምጫ (READ)
 app.get('/api/foods', async (req, res) => {
   try {
     const foods = await Food.find().sort({ date: -1 });
@@ -163,7 +162,6 @@ app.get('/api/foods', async (req, res) => {
   }
 });
 
-// 3. ሰራተኛው/አድሚኑ ምግብ የሚያስተካክልበት መስመር (UPDATE)
 app.put('/api/employee/foods/:id', upload.single('image'), async (req, res) => {
   try {
     const { name, description, price } = req.body;
@@ -181,7 +179,6 @@ app.put('/api/employee/foods/:id', upload.single('image'), async (req, res) => {
   }
 });
 
-// 4. ምግብ ማጥፊያ (DELETE - ለአድሚን እና ለሰራተኛ የሚሆን)
 app.delete('/api/employee/foods/:id', async (req, res) => {
   try {
     await Food.findByIdAndDelete(req.params.id);
@@ -200,27 +197,25 @@ app.delete('/api/admin/foods/:id', async (req, res) => {
   }
 });
 
-// አዲስ ሲስተም መመዝገቢያ (POST)
+// የፕሮጀክት/ሲስተም ራውቶች
 app.post('/api/admin/projects', async (req, res) => {
   const newProject = new Project(req.body);
   await newProject.save();
   res.json({ success: true });
 });
 
-// ሲስተሞችን ማምጫ (GET)
 app.get('/api/projects', async (req, res) => {
   const projects = await Project.find().sort({ date: -1 });
   res.json({ success: true, projects });
 });
 
-// ሲስተሞችን ማጥፊያ (DELETE)
 app.delete('/api/admin/projects/:id', async (req, res) => {
   await Project.findByIdAndDelete(req.params.id);
   res.json({ success: true });
 });
 
 // ==========================================
-// 3. የደህንነት እና መግቢያ መስመሮች (AUTH ROUTES)
+// 4. የደህንነት እና መግቢያ መስመሮች (AUTH ROUTES)
 // ==========================================
 
 app.post('/api/auth/signup', async (req, res) => {
@@ -269,7 +264,7 @@ app.post('/api/auth/login', async (req, res) => {
 });
 
 // ==========================================
-// 4. የአድሚን መቆጣጠሪያ መስመሮች (ADMIN CONTROL ROUTES)
+// 5. የአድሚን መቆጣጠሪያ መስመሮች (ADMIN CONTROL ROUTES)
 // ==========================================
 
 app.post('/api/admin/add-admin', async (req, res) => {
@@ -286,7 +281,6 @@ app.post('/api/admin/add-admin', async (req, res) => {
       password: hashedPassword,
       role: 'admin'
     });
-
     await newAdmin.save();
     res.status(201).json({ success: true, message: 'አዲሱ አድሚን በስኬት ተመዝግቧል!' });
   } catch (error) {
@@ -342,7 +336,6 @@ app.get('/api/admin/messages', async (req, res) => {
   }
 });
 
-// ለአጠቃላይ መልዕክቶች ማምጫ (ለ Employee Dashboard ሪአክተር የሚጠቅም)
 app.get('/api/messages', async (req, res) => {
   try {
     const messages = await Contact.find().sort({ date: -1 });
@@ -400,7 +393,7 @@ app.post('/api/admin/add-employee', async (req, res) => {
 });
 
 // ==========================================
-// 5. የተጠቃሚዎች ማስተዳደሪያ (USER MANAGEMENT ROUTES)
+// 6. የደንበኞች ማዘዣ እና ራውቶች (USER/ORDER/MESSAGES ROUTES)
 // ==========================================
 
 app.get('/api/admin/users', async (req, res) => {
@@ -421,7 +414,7 @@ app.get('/api/admin/users', async (req, res) => {
             name: sampleContact.name || 'ስም የሌለው ደንበኛ',
             email: email,
             isBlocked: false,
-            isChatOnly: true   
+            isChatOnly: true    
           });
         }
       }
@@ -517,10 +510,6 @@ app.delete('/api/admin/employee-delete/:id', async (req, res) => {
   }
 });
 
-// ==========================================
-// 6. የደንበኞች ማዘዣ መስመሮች (USER/ORDER ROUTES)
-// ==========================================
-
 app.post('/api/contact', async (req, res) => {
   try {
     const { name, email, message } = req.body;
@@ -606,7 +595,6 @@ app.post('/api/admin/send-new-message', async (req, res) => {
   }
 });
 
-// 📦 ደንበኛ ከካርት የሚልካቸውን ትዕዛዞች፣ የጠረጴዛ ቁጥር እና የስክሪንሾት ፋይል መቀበያ ራውት
 app.post('/api/orders', upload.single('paymentScreenshotFile'), async (req, res) => {
   try {
     const { userId, customerName, customerEmail, items, totalAmount, tableNumber } = req.body;
@@ -644,11 +632,13 @@ app.post('/api/orders', upload.single('paymentScreenshotFile'), async (req, res)
     res.status(500).json({ success: false, error: 'ትዕዛዙን ማስቀመጥ አልተቻለም' });
   }
 });
-// 📦 የሰራተኛ ትዕዛዝ ማሻሻያ (Approve / Cancel) ራውት
-router.put('/api/employee/orders/:id', async (req, res) => {
+
+// 📦 1. የሰራተኛ ትዕዛዝ ማሻሻያ ራውት (Frontend የሚጠራው)
+app.put('/api/employee/orders/:id', async (req, res) => {
   try {
     const { status, handledBy } = req.body;
-    const updatedOrder = await Order.findByIdAndUpdate(
+    
+    const updatedOrder = await Contact.findByIdAndUpdate(
       req.params.id,
       { status, handledBy },
       { new: true }
@@ -658,33 +648,35 @@ router.put('/api/employee/orders/:id', async (req, res) => {
       return res.status(404).json({ success: false, error: 'ትዕዛዙ አልተገኘም' });
     }
 
-    res.json({ success: true, order: updatedOrder });
+    res.status(200).json({ success: true, order: updatedOrder });
   } catch (err) {
+    console.error('EMPLOYEE ORDER UPDATE ERROR:', err);
     res.status(500).json({ success: false, error: 'ሰርቨር ስህተት አጋጥሟል' });
   }
 });
-// 📦 የሰራተኛ ትዕዛዝ ማሻሻያ (Approve / Cancel እና handledBy) - ትክክለኛው የ Contact ሞዴል በመጠቀም
+
+// 📦 2. ሌላኛው የመልዕክት ማሻሻያ ራውት (ለተመሳሳይ ጥያቄዎች)
 app.put('/api/messages/:id', async (req, res) => {
   try {
     const { status, handledBy } = req.body;
     
-    // እዚህ ጋር 'Contact' ሞዴሉን መጠቀም ይኖርብናል (ምክንያቱም ትዕዛዞቹ የሚቀመጡት Contact ስኪማ ላይ ስለሆነ)
-    const updatedOrder = await Contact.findByIdAndUpdate(
+    const updatedMessage = await Contact.findByIdAndUpdate(
       req.params.id,
       { status, handledBy },
-      { new: { true } }
+      { new: true }
     );
-    
-    if (!updatedOrder) {
-      return res.status(404).json({ success: false, error: 'ትዕዛዙ ወይም መልዕክቱ አልተገኘም' });
+
+    if (!updatedMessage) {
+      return res.status(404).json({ success: false, error: 'መልዕክቱ ወይም ትዕዛዙ አልተገኘም' });
     }
 
-    res.status(200).json({ success: true, message: 'ትዕዛዙ በተሳካ ሁኔታ ተስተካክሏል', order: updatedOrder });
+    res.status(200).json({ success: true, message: updatedMessage });
   } catch (err) {
-    console.error('ORDER UPDATE ERROR:', err);
-    res.status(500).json({ success: false, error: 'ሰርቨር ስህተት አጋጥሟል' });
+    console.error('MESSAGE UPDATE ERROR:', err);
+    res.status(500).json({ success: false, error: 'የሰርቨር ስህተት አጋጥሟል' });
   }
 });
+
 // ==========================================
 // 7. የሰርቨር ጤንነት እና ማስነሻ (SERVER START)
 // ==========================================
