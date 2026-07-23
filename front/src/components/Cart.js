@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import './Footer.css';
 
 function Cart({ cartItems, setCartItems, navigateTo, user, API_BASE_URL }) {
-  const [paymentScreenshot, setPaymentScreenshot] = useState('');
+  const [tableNumber, setTableNumber] = useState('');
+  const [screenshotFile, setScreenshotFile] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const handleRemoveItem = (indexToRemove) => {
@@ -25,35 +26,39 @@ function Cart({ cartItems, setCartItems, navigateTo, user, API_BASE_URL }) {
       return;
     }
 
-    if (!paymentScreenshot) {
-      alert('እባክዎ የክፍያ ማረጋገጫ (ስክሪንሾት) ሊንክ ያስገቡ!');
+    if (!tableNumber) {
+      alert('እባክዎ የጠረጴዛ ቁጥርዎን (Table Number) ያስገቡ!');
+      return;
+    }
+
+    if (!screenshotFile) {
+      alert('እባክዎ የክፍያ ማረጋገጫ ስክሪንሾት ምስል ይምረጡ!');
       return;
     }
 
     setLoading(true);
 
     try {
-      const orderData = {
-        userId: user.id || user._id,
-        customerName: user.name,
-        customerEmail: user.email,
-        items: cartItems,
-        totalAmount,
-        paymentScreenshot
-      };
+      const formData = new FormData();
+      formData.append('userId', user.id || user._id);
+      formData.append('customerName', user.name);
+      formData.append('customerEmail', user.email);
+      formData.append('items', JSON.stringify(cartItems));
+      formData.append('totalAmount', totalAmount);
+      formData.append('tableNumber', tableNumber);
+      formData.append('paymentScreenshotFile', screenshotFile);
 
       const res = await fetch(`${API_BASE_URL}/api/orders`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(orderData)
+        body: formData // ከ FormData ጋር Content-Type ማቀናበር አያስፈልግም (browser ራሱ ይሠራል)
       });
 
       const data = await res.json();
 
       if (res.ok && data.success) {
         alert('✅ ትዕዛዝዎ እና የክፍያ ማረጋገጫዎ ተልኳል! ሰራተኛችን እስኪያረጋግጠው ይጠብቁ።');
-        setCartItems([]); // ካርቱን ባዶ እናደርጋለን
-        navigateTo('order'); // ወደ ትዕዛዞች ገጽ እንወስደዋለን
+        setCartItems([]); 
+        navigateTo('order'); 
       } else {
         alert(data.error || 'ትዕዛዙን መላክ አልተቻለም።');
       }
@@ -95,14 +100,26 @@ function Cart({ cartItems, setCartItems, navigateTo, user, API_BASE_URL }) {
           <div style={{ marginTop: '30px', padding: '20px', background: '#21262d', borderRadius: '8px' }}>
             <h3>አጠቃላይ የሚከፈል: ብር {totalAmount.toFixed(2)}</h3>
             
-            {/* የክፍያ ስክሪንሾት ማስገቢያ */}
+            {/* የጠረጴዛ ቁጥር ማስገቢያ */}
             <div style={{ marginTop: '15px' }}>
-              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>የክፍያ ማረጋገጫ ስክሪንሾት ሊንክ (Image URL):</label>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>የጠረጴዛ ቁጥር (Table Number):</label>
               <input 
                 type="text" 
-                placeholder="ለምሳሌ: https://i.ibb.co/... አጥብቀው ይለጥፉ"
-                value={paymentScreenshot}
-                onChange={(e) => setPaymentScreenshot(e.target.value)}
+                placeholder="ለምሳሌ: ጠረጴዛ ቁጥር 4"
+                value={tableNumber}
+                onChange={(e) => setTableNumber(e.target.value)}
+                style={{ width: '100%', padding: '10px', background: '#161b22', border: '1px solid #30363d', color: '#fff', borderRadius: '5px' }}
+                required
+              />
+            </div>
+
+            {/* የክፍያ ስክሪንሾት ፋይል መጫኛ */}
+            <div style={{ marginTop: '15px' }}>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>የክፍያ ማረጋገጫ ስክሪንሾት (ምስል ይምረጡ):</label>
+              <input 
+                type="file" 
+                accept="image/*"
+                onChange={(e) => setScreenshotFile(e.target.files[0])}
                 style={{ width: '100%', padding: '10px', background: '#161b22', border: '1px solid #30363d', color: '#fff', borderRadius: '5px' }}
                 required
               />
@@ -113,7 +130,7 @@ function Cart({ cartItems, setCartItems, navigateTo, user, API_BASE_URL }) {
               disabled={loading}
               style={{ marginTop: '20px', background: '#2ecc71', color: 'white', border: 'none', padding: '12px 25px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', width: '100%' }}
             >
-              {loading ? 'በመላክ ላይ...' : 'ትዕዛዝ አረጋግጥ እና ላክ (Checkout)'}
+              {loading ? 'በመጫን እና በመላክ ላይ...' : 'ትዕዛዝ አረጋግጥ እና ላክ (Checkout)'}
             </button>
           </div>
         </div>
