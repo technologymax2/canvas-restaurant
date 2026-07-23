@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
 
-
 function Order({ user, API_BASE_URL }) {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -35,62 +34,79 @@ function Order({ user, API_BASE_URL }) {
 
   if (!user) {
     return (
-      <div className="order-guest-container">
-        <div className="order-guest-card">
-          <h2>⚠️ እባክዎ ትዕዛዞችዎን ለማየት መጀመሪያ ይግቡ (Login)</h2>
+      <div className="flex justify-center items-center min-h-[60vh] p-4">
+        <div className="bg-gray-900 border border-gray-800 p-8 rounded-2xl shadow-2xl text-center max-w-md w-full">
+          <h2 className="text-amber-400 font-semibold text-lg">⚠️ እባክዎ ትዕዛዞችዎን ለማየት መጀመሪያ ይግቡ (Login)</h2>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="order-container">
-      <div className="order-header-box">
-        <h2>📦 የእርስዎ ትዕዛዞች እና የክፍያ ታሪክ</h2>
-        <p>የማዘዣዎትን ሁኔታ እና የሰራተኞችን ምላሽ እዚህ መከታተል ይችላሉ።</p>
+    <div className="max-w-4xl mx-auto px-4 py-8 text-white font-sans">
+      {/* 🌟 Header Section */}
+      <div className="bg-gradient-to-br from-gray-900 to-gray-950 p-6 sm:p-8 rounded-2xl border border-gray-800 shadow-xl mb-8 text-center">
+        <h2 className="text-2xl sm:text-3xl font-bold text-blue-400 mb-2">📦 የእርስዎ ትዕዛዞች እና የክፍያ ታሪክ</h2>
+        <p className="text-gray-400 text-sm sm:text-base">የማዘዣዎትን ሁኔታ እና የሰራተኞችን ምላሽ እዚህ በቅርበት መከታተል ይችላሉ።</p>
       </div>
 
       {loading ? (
-        <div className="order-loading">⏳ በመጫን ላይ...</div>
+        <div className="text-center py-12 bg-gray-900 rounded-2xl border border-gray-800 text-gray-400 animate-pulse">
+          ⏳ በመጫ ላይ...
+        </div>
       ) : error ? (
-        <div className="order-error">{error}</div>
+        <div className="text-center py-12 bg-gray-900 rounded-2xl border border-red-900/50 text-red-400 font-medium">
+          {error}
+        </div>
       ) : orders.length === 0 ? (
-        <div className="order-empty">
-          <p>🛒 እስካሁን ያስቀመጡት ትዕዛዝ የለም።</p>
+        <div className="text-center py-12 bg-gray-900 rounded-2xl border border-gray-800 text-gray-400">
+          🛒 እስካሁን ያስቀመጡት ትዕዛዝ የለም።
         </div>
       ) : (
-        <div className="orders-grid">
+        <div className="grid gap-6">
           {orders.map((ord) => {
-            // የስታተስ ቀለሞችን ለመወሰን
-            let badgeClass = 'status-pending';
-            if (ord.status === 'Approved') badgeClass = 'status-approved';
-            else if (ord.status === 'Completed') badgeClass = 'status-completed';
-            else if (ord.status === 'Cancelled') badgeClass = 'status-cancelled';
-            else if (ord.status === 'ምላሽ ተሰጥቷል') badgeClass = 'status-replied';
+            // Tailwind status badge colors
+            let badgeStyle = 'bg-amber-500/10 text-amber-400 border-amber-500/30';
+            if (ord.status === 'Approved') {
+              badgeStyle = 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30';
+            } else if (ord.status === 'Completed') {
+              badgeStyle = 'bg-blue-500/10 text-blue-400 border-blue-500/30';
+            } else if (ord.status === 'Cancelled') {
+              badgeStyle = 'bg-red-500/10 text-red-400 border-red-500/30';
+            } else if (ord.status === 'ምላሽ ተሰጥቷል') {
+              badgeStyle = 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30';
+            }
 
             return (
-              <div key={ord._id} className="order-card">
-                <div className="order-card-header">
-                  <span className="order-date">📅 {new Date(ord.date).toLocaleString()}</span>
-                  <span className={`order-status-badge ${badgeClass}`}>
+              <div 
+                key={ord._id} 
+                className="bg-gray-900 rounded-2xl border border-gray-800 p-6 shadow-lg hover:border-blue-500/50 transition-all duration-200"
+              >
+                <div className="flex flex-wrap justify-between items-center gap-3 mb-4 pb-3 border-b border-gray-800">
+                  <span className="text-gray-400 text-xs sm:text-sm flex items-center gap-1.5">
+                    📅 {new Date(ord.date).toLocaleString()}
+                  </span>
+                  <span className={`px-3 py-1 rounded-full text-xs font-bold border ${badgeStyle}`}>
                     {ord.status || 'በጥበቃ ላይ'}
                   </span>
                 </div>
 
-                <div className="order-body">
-                  <p className="order-message-text">
-                    <strong>📝 ዝርዝር / መልዕክት:</strong> {ord.message}
+                <div className="space-y-3">
+                  <p className="text-gray-200 text-sm sm:text-base leading-relaxed">
+                    <strong className="text-gray-400 font-medium">📝 ዝርዝር / መልዕክት:</strong> {ord.message}
                   </p>
 
                   {ord.reply && (
-                    <div className="order-reply-box">
-                      <p><strong>👑 የሰራተኛ/የአድሚን ምላሽ:</strong> {ord.reply}</p>
+                    <div className="bg-gray-950 p-4 rounded-xl border-l-4 border-emerald-500 border border-gray-800">
+                      <p className="text-emerald-400 text-sm font-medium">
+                        👑 የሰራተኛ/የአድሚን ምላሽ: <span className="text-gray-200 font-normal">{ord.reply}</span>
+                      </p>
                     </div>
                   )}
 
                   {ord.handledBy && (
-                    <p className="order-handled-by">
-                      👨‍🍳 ያስተካከለው ሰራተኛ: <span>{ord.handledBy}</span>
+                    <p className="text-xs text-gray-400 italic">
+                      👨‍🍳 ያስተካከለው ሰራተኛ: <span className="text-blue-400 font-semibold not-italic">{ord.handledBy}</span>
                     </p>
                   )}
                 </div>
