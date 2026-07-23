@@ -606,6 +606,37 @@ app.post('/api/admin/send-new-message', async (req, res) => {
   }
 });
 
+// 📦 ደንበኛ ከካርት የሚልካቸውን ትዕዛዞች እና የክፍያ ስክሪንሾት መቀበያ ራውት
+app.post('/api/orders', async (req, res) => {
+  try {
+    const { userId, customerName, customerEmail, items, totalAmount, paymentScreenshot } = req.body;
+
+    if (!customerEmail || !items || items.length === 0) {
+      return res.status(400).json({ success: false, error: 'የምግብ ዝርዝር ወይም የኢሜይል መረጃ ጠፍቷል!' });
+    }
+
+    if (!paymentScreenshot) {
+      return res.status(400).json({ success: false, error: 'እባክዎ የክፍያ ማረጋገጫ (ስክሪንሾት) ያያይዙ!' });
+    }
+
+    // መረጃውን ከምግብ ዝርዝር ጋር በ Contact (ወይም Order) Schema ውስጥ እናስቀምጣለን
+    const orderDetailsString = items.map(i => `${i.name} (ብዛት: ${i.quantity || 1}) - ብር ${i.price}`).join(', ');
+    
+    const newOrder = new Contact({
+      name: customerName || 'ደንበኛ',
+      email: customerEmail,
+      message: `የታዘዙ ምግቦች: [ ${orderDetailsString} ] | አጠቃላይ ዋጋ: ብር ${totalAmount} | የክፍያ ማረጋገጫ: ${paymentScreenshot}`,
+      status: 'በጥበቃ ላይ' // ሰራተኛው እስኪያየው ድረስ
+    });
+
+    await newOrder.save();
+    res.status(201).json({ success: true, message: 'ትዕዛዝዎ በስኬት ተልኳል!' });
+  } catch (error) {
+    console.error('ORDER ERROR:', error);
+    res.status(500).json({ success: false, error: 'ትዕዛዙን ማስቀመጥ አልተቻለም' });
+  }
+});
+
 // ==========================================
 // 7. የሰርቨር ጤንነት እና ማስነሻ (SERVER START)
 // ==========================================
