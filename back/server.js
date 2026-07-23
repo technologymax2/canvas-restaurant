@@ -644,6 +644,25 @@ app.post('/api/orders', upload.single('paymentScreenshotFile'), async (req, res)
     res.status(500).json({ success: false, error: 'ትዕዛዙን ማስቀመጥ አልተቻለም' });
   }
 });
+// 📦 የሰራተኛ ትዕዛዝ ማሻሻያ (Approve / Cancel) ራውት
+router.put('/api/employee/orders/:id', async (req, res) => {
+  try {
+    const { status, handledBy } = req.body;
+    const updatedOrder = await Order.findByIdAndUpdate(
+      req.params.id,
+      { status, handledBy },
+      { new: true }
+    );
+    
+    if (!updatedOrder) {
+      return res.status(404).json({ success: false, error: 'ትዕዛዙ አልተገኘም' });
+    }
+
+    res.json({ success: true, order: updatedOrder });
+  } catch (err) {
+    res.status(500).json({ success: false, error: 'ሰርቨር ስህተት አጋጥሟል' });
+  }
+});
 // ==========================================
 // 7. የሰርቨር ጤንነት እና ማስነሻ (SERVER START)
 // ==========================================
