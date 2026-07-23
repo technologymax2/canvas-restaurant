@@ -1,5 +1,5 @@
 import React from 'react';
-import './Footer.css'; // ወይም የራሱ የስታይል ፋይል ካለው መቀየር ይቻላል
+import './Footer.css';
 
 function Cart({ cartItems, setCartItems, navigateTo }) {
   
