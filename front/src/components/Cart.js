@@ -26,7 +26,7 @@ function Cart({ cartItems, setCartItems, navigateTo, user, API_BASE_URL }) {
     }
 
     if (!paymentScreenshot) {
-      alert('እባክዎ የክፍያ ማረጋገጫ (ስክሪንሾት) ሊንክ ወይም ምስል ያያይዙ!');
+      alert('እባክዎ የክፍያ ማረጋገጫ (ስክሪንሾት) ሊንክ ያስገቡ!');
       return;
     }
 
@@ -34,13 +34,12 @@ function Cart({ cartItems, setCartItems, navigateTo, user, API_BASE_URL }) {
 
     try {
       const orderData = {
-        userId: user._id || user.email,
+        userId: user.id || user._id,
         customerName: user.name,
         customerEmail: user.email,
         items: cartItems,
         totalAmount,
-        paymentScreenshot,
-        status: 'Pending' // ለአድሚን/ሰራተኛ ለማሳየት
+        paymentScreenshot
       };
 
       const res = await fetch(`${API_BASE_URL}/api/orders`, {
@@ -51,8 +50,8 @@ function Cart({ cartItems, setCartItems, navigateTo, user, API_BASE_URL }) {
 
       const data = await res.json();
 
-      if (res.ok || data.success) {
-        alert('✅ ትዕዛዝዎ ተልኳል! ሰራተኛችን ክፍያውን አረጋግጦ እስኪፈቅድ ድረስ በትዕግስት ይጠብቁ።');
+      if (res.ok && data.success) {
+        alert('✅ ትዕዛዝዎ እና የክፍያ ማረጋገጫዎ ተልኳል! ሰራተኛችን እስኪያረጋግጠው ይጠብቁ።');
         setCartItems([]); // ካርቱን ባዶ እናደርጋለን
         navigateTo('order'); // ወደ ትዕዛዞች ገጽ እንወስደዋለን
       } else {
@@ -98,10 +97,10 @@ function Cart({ cartItems, setCartItems, navigateTo, user, API_BASE_URL }) {
             
             {/* የክፍያ ስክሪንሾት ማስገቢያ */}
             <div style={{ marginTop: '15px' }}>
-              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>የክፍያ ማረጋገጫ (ስክሪንሾት ሊንክ ወይም ምስል ዩአርኤል):</label>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>የክፍያ ማረጋገጫ ስክሪንሾት ሊንክ (Image URL):</label>
               <input 
                 type="text" 
-                placeholder="ስክሪንሾቱ የተቀመጠበትን ሊንክ ይለጥፉ..."
+                placeholder="ለምሳሌ: https://i.ibb.co/... አጥብቀው ይለጥፉ"
                 value={paymentScreenshot}
                 onChange={(e) => setPaymentScreenshot(e.target.value)}
                 style={{ width: '100%', padding: '10px', background: '#161b22', border: '1px solid #30363d', color: '#fff', borderRadius: '5px' }}
