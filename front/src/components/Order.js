@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 
-function Order({ user, API_BASE_URL }) {
+function Order({ user, handleLogout, API_BASE_URL }) {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -44,10 +44,21 @@ function Order({ user, API_BASE_URL }) {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 text-white font-sans">
-      {/* 🌟 Header Section */}
-      <div className="bg-gradient-to-br from-gray-900 to-gray-950 p-6 sm:p-8 rounded-2xl border border-gray-800 shadow-xl mb-8 text-center">
-        <h2 className="text-2xl sm:text-3xl font-bold text-blue-400 mb-2">📦 የእርስዎ ትዕዛዞች እና የክፍያ ታሪክ</h2>
-        <p className="text-gray-400 text-sm sm:text-base">የልዩ ትዕዛዝ ቁጥርዎን፣ የምግብ ዝርዝሮችን እና የክፍያ ስክሪንሾት እዚህ መከታተል ይችላሉ።</p>
+      
+      {/* 🌟 1. Header Section with Logout Button */}
+      <div className="flex flex-wrap justify-between items-center bg-gradient-to-br from-gray-900 to-gray-950 p-6 sm:p-8 rounded-2xl border border-gray-800 shadow-xl mb-8 gap-4">
+        <div>
+          <h2 className="text-2xl sm:text-3xl font-bold text-blue-400 mb-1">📦 የእርስዎ ትዕዛዞች እና የክፍያ ታሪክ</h2>
+          <p className="text-gray-400 text-sm sm:text-base">የልዩ ትዕዛዝ ቁጥርዎን፣ የምግብ ዝርዝሮችን እና የክፍያ ስክሪንሾት እዚህ መከታተል ይችላሉ።</p>
+        </div>
+        {handleLogout && (
+          <button 
+            onClick={handleLogout} 
+            className="bg-red-600 hover:bg-red-700 text-white font-bold px-5 py-2.5 rounded-xl transition duration-200 shadow-lg text-sm shrink-0"
+          >
+            🚪 ውጣ (Logout)
+          </button>
+        )}
       </div>
 
       {loading ? (
@@ -74,7 +85,12 @@ function Order({ user, API_BASE_URL }) {
               badgeStyle = 'bg-red-500/10 text-red-400 border-red-500/30';
             }
 
-            // የክፍያ ስክሪንሾት ዩአርኤልን ማውጣት
+            // 🔢 2. የትዕዛዝ ቁጥር (ቁጥር ብቻ እንዲሆን ከ _id መቀየር)
+            const numericOrderNo = ord.orderNumber 
+              ? String(ord.orderNumber).replace(/\D/g, '') 
+              : (ord._id ? parseInt(ord._id.slice(-6), 16) : index + 1001);
+
+            // 🖼️ የክፍያ ስክሪንሾት ዩአርኤል ማውጣት
             let extractedScreenshotUrl = ord.paymentScreenshotUrl || '';
             if (!extractedScreenshotUrl && ord.message && ord.message.includes('የክፍያ ስክሪንሾት:')) {
               const parts = ord.message.split('የክፍያ ስክሪንሾት:');
@@ -83,19 +99,16 @@ function Order({ user, API_BASE_URL }) {
               }
             }
 
-            // ልዩ የትዕዛዝ ቁጥር (Unique Order Number) ከሰርቨር ወይም ርዝመት በመውሰድ ላይ
-            const uniqueOrderNo = ord.orderNumber || `#${ord._id ? ord._id.slice(-6).toUpperCase() : index + 1001}`;
-
             return (
               <div 
                 key={ord._id || index} 
                 className="bg-gray-900 rounded-2xl border border-gray-800 p-6 shadow-lg hover:border-blue-500/50 transition-all duration-200"
               >
-                {/* 🔖 የትዕዛዝ ቁጥር እና ስታተስ ማሳያ */}
+                {/* 🔖 የትዕዛዝ ቁጥር (ቁጥር ብቻ) እና ስታተስ ማሳያ */}
                 <div className="flex flex-wrap justify-between items-center gap-3 mb-4 pb-3 border-b border-gray-800">
                   <div>
-                    <span className="text-xs text-gray-400 block">ልዩ ትዕዛዝ ቁጥር (Order No):</span>
-                    <span className="text-blue-400 font-bold text-base tracking-wider">{uniqueOrderNo}</span>
+                    <span className="text-xs text-gray-400 block">የትዕዛዝ ቁጥር (Order Number):</span>
+                    <span className="text-blue-400 font-extrabold text-xl tracking-wider">#{numericOrderNo}</span>
                   </div>
                   <span className={`px-3 py-1 rounded-full text-xs font-bold border ${badgeStyle}`}>
                     {ord.status || 'በጥበቃ ላይ'}
@@ -108,34 +121,41 @@ function Order({ user, API_BASE_URL }) {
                     <span>ጠረጴዛ ቁጥር: <strong className="text-white">{ord.tableNumber || 'አልተገለጸም'}</strong></span>
                   </div>
 
-                  {/* 🍲 የታዘዙ ምግቦች ዝርዝር እና ዋጋ */}
-                  {ord.items && (
-                    <div className="bg-gray-950 p-4 rounded-xl border border-gray-800">
-                      <strong className="text-gray-400 text-xs uppercase tracking-wider block mb-2">የታዘዙ ምግቦች:</strong>
+                  {/* 🍲 3. የታዘዙ ምግቦች አይነት እና ብዛት በግልጽ ማሳያ */}
+                  <div className="bg-gray-950 p-4 rounded-xl border border-gray-800">
+                    <strong className="text-gray-400 text-xs uppercase tracking-wider block mb-3">የታዘዙ ምግቦች እና ብዛት:</strong>
+                    {ord.items ? (
                       <ul className="divide-y divide-gray-800/60">
                         {(() => {
                           try {
                             const parsedItems = typeof ord.items === 'string' ? JSON.parse(ord.items) : ord.items;
                             return parsedItems.map((item, idx) => (
                               <li key={idx} className="py-2 flex justify-between items-center text-sm">
-                                <div>
-                                  <span className="text-white font-medium">{item.name}</span>
-                                  <span className="text-gray-400 text-xs ml-2">(ብዛት: {item.quantity || 1})</span>
+                                <div className="flex items-center gap-2">
+                                  <span className="text-white font-bold">{item.name}</span>
+                                  <span className="text-blue-400 text-xs bg-blue-950 px-2.5 py-0.5 rounded-md border border-blue-800 font-semibold">
+                                    ብዛት: {item.quantity || 1}
+                                  </span>
                                 </div>
-                                <span className="text-emerald-400 font-semibold">ብር {item.price}</span>
+                                <span className="text-emerald-400 font-semibold">ብር {(item.price || 0) * (item.quantity || 1)}</span>
                               </li>
                             ));
                           } catch (e) {
-                            return <p className="text-sm text-gray-400">{ord.message}</p>;
+                            return <p className="text-sm text-gray-300">{ord.message}</p>;
                           }
                         })()}
                       </ul>
+                    ) : (
+                      <p className="text-sm text-gray-300">{ord.message}</p>
+                    )}
+
+                    {ord.totalAmount && (
                       <div className="mt-3 pt-2 border-t border-gray-800 flex justify-between items-center text-sm font-bold">
-                        <span className="text-gray-300">አጠቃላይ ዋጋ:</span>
-                        <span className="text-emerald-400 text-base">ብር {ord.totalAmount || '---'}</span>
+                        <span className="text-gray-300">አጠቃላይ የሚከፈል ዋጋ:</span>
+                        <span className="text-emerald-400 text-base">ብር {ord.totalAmount}</span>
                       </div>
-                    </div>
-                  )}
+                    )}
+                  </div>
 
                   {/* 🖼️ የክፍያ ስክሪንሾት ምስል ማሳያ */}
                   {extractedScreenshotUrl && (
