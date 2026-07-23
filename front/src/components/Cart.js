@@ -3,6 +3,7 @@ import './Footer.css';
 
 function Cart({ cartItems, setCartItems, navigateTo, user, API_BASE_URL }) {
   const [tableNumber, setTableNumber] = useState('');
+  const [paymentScreenshotUrl, setPaymentScreenshotUrl] = useState('');
   const [screenshotFile, setScreenshotFile] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -31,8 +32,8 @@ function Cart({ cartItems, setCartItems, navigateTo, user, API_BASE_URL }) {
       return;
     }
 
-    if (!screenshotFile) {
-      alert('እባክዎ የክፍያ ማረጋገጫ ስክሪንሾት ምስል ይምረጡ!');
+    if (!paymentScreenshotUrl && !screenshotFile) {
+      alert('እባክዎ የክፍያ ማረጋገጫ ሊንክ ያስገቡ ወይም ስክሪንሾት ምስል ይምረጡ!');
       return;
     }
 
@@ -46,11 +47,14 @@ function Cart({ cartItems, setCartItems, navigateTo, user, API_BASE_URL }) {
       formData.append('items', JSON.stringify(cartItems));
       formData.append('totalAmount', totalAmount);
       formData.append('tableNumber', tableNumber);
-      formData.append('paymentScreenshotFile', screenshotFile);
+      formData.append('paymentScreenshotUrl', paymentScreenshotUrl); // የሊንክ ግብዓት
+      if (screenshotFile) {
+        formData.append('paymentScreenshotFile', screenshotFile); // የፋይል ግብዓት
+      }
 
       const res = await fetch(`${API_BASE_URL}/api/orders`, {
         method: 'POST',
-        body: formData // ከ FormData ጋር Content-Type ማቀናበር አያስፈልግም (browser ራሱ ይሠራል)
+        body: formData
       });
 
       const data = await res.json();
@@ -113,15 +117,26 @@ function Cart({ cartItems, setCartItems, navigateTo, user, API_BASE_URL }) {
               />
             </div>
 
-            {/* የክፍያ ስክሪንሾት ፋይል መጫኛ */}
+            {/* የክፍያ ስክሪንሾት ሊንክ ማስገቢያ */}
             <div style={{ marginTop: '15px' }}>
-              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>የክፍያ ማረጋገጫ ስክሪንሾት (ምስል ይምረጡ):</label>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>የክፍያ ስክሪንሾት ሊንክ (Image URL):</label>
+              <input 
+                type="text" 
+                placeholder="የስክሪንሾቱን ሊንክ እዚህ ይለጥፉ..."
+                value={paymentScreenshotUrl}
+                onChange={(e) => setPaymentScreenshotUrl(e.target.value)}
+                style={{ width: '100%', padding: '10px', background: '#161b22', border: '1px solid #30363d', color: '#fff', borderRadius: '5px' }}
+              />
+            </div>
+
+            {/* የክፍያ ስክሪንሾት ፋይል መጫኛ (አማራጭ) */}
+            <div style={{ marginTop: '15px' }}>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>ወይም የክፍያ ስክሪንሾት ፋይል ይምረጡ (Image File):</label>
               <input 
                 type="file" 
                 accept="image/*"
                 onChange={(e) => setScreenshotFile(e.target.files[0])}
                 style={{ width: '100%', padding: '10px', background: '#161b22', border: '1px solid #30363d', color: '#fff', borderRadius: '5px' }}
-                required
               />
             </div>
 
