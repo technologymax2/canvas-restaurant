@@ -198,8 +198,15 @@ function App() {
         {/* እኛን ማግኛ ገጽ */}
         {currentScreen === 'contact' && <ContactUs user={user} API_BASE_URL={API_BASE_URL} fetchMessages={fetchMessages} />}
         
-        {/* የካርት ገጽ */}
-        {currentScreen === 'cart' && <Cart cartItems={cart} setCartItems={setCart} navigateTo={setCurrentScreen} />}
+      {currentScreen === 'cart' && (
+  <Cart 
+    cartItems={cart} 
+    setCartItems={setCart} 
+    navigateTo={setCurrentScreen} 
+    user={user} 
+    API_BASE_URL={API_BASE_URL} 
+  />
+)}
         
         {/* ዳሽቦርዶች (በሮል የተጠበቁ) */}
         {currentScreen === 'admin-dashboard' && user?.role === 'admin' && (
