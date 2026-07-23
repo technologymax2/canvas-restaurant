@@ -45,7 +45,7 @@ function Order({ user, handleLogout, API_BASE_URL }) {
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 text-white font-sans">
       
-      {/* 🌟 1. Header Section with Logout Button */}
+      {/* 🌟 Header Section with Logout Button */}
       <div className="flex flex-wrap justify-between items-center bg-gradient-to-br from-gray-900 to-gray-950 p-6 sm:p-8 rounded-2xl border border-gray-800 shadow-xl mb-8 gap-4">
         <div>
           <h2 className="text-2xl sm:text-3xl font-bold text-blue-400 mb-1">📦 የእርስዎ ትዕዛዞች እና የክፍያ ታሪክ</h2>
@@ -85,12 +85,12 @@ function Order({ user, handleLogout, API_BASE_URL }) {
               badgeStyle = 'bg-red-500/10 text-red-400 border-red-500/30';
             }
 
-            // 🔢 2. የትዕዛዝ ቁጥር (ቁጥር ብቻ እንዲሆን ከ _id መቀየር)
+            // የትዕዛዝ ቁጥር (ቁጥር ብቻ እንዲሆን የተደረገ)
             const numericOrderNo = ord.orderNumber 
               ? String(ord.orderNumber).replace(/\D/g, '') 
               : (ord._id ? parseInt(ord._id.slice(-6), 16) : index + 1001);
 
-            // 🖼️ የክፍያ ስክሪንሾት ዩአርኤል ማውጣት
+            // የክፍያ ስክሪንሾት ዩአርኤል ማውጣት
             let extractedScreenshotUrl = ord.paymentScreenshotUrl || '';
             if (!extractedScreenshotUrl && ord.message && ord.message.includes('የክፍያ ስክሪንሾት:')) {
               const parts = ord.message.split('የክፍያ ስክሪንሾት:');
@@ -104,7 +104,6 @@ function Order({ user, handleLogout, API_BASE_URL }) {
                 key={ord._id || index} 
                 className="bg-gray-900 rounded-2xl border border-gray-800 p-6 shadow-lg hover:border-blue-500/50 transition-all duration-200"
               >
-                {/* 🔖 የትዕዛዝ ቁጥር (ቁጥር ብቻ) እና ስታተስ ማሳያ */}
                 <div className="flex flex-wrap justify-between items-center gap-3 mb-4 pb-3 border-b border-gray-800">
                   <div>
                     <span className="text-xs text-gray-400 block">የትዕዛዝ ቁጥር (Order Number):</span>
@@ -121,7 +120,7 @@ function Order({ user, handleLogout, API_BASE_URL }) {
                     <span>ጠረጴዛ ቁጥር: <strong className="text-white">{ord.tableNumber || 'አልተገለጸም'}</strong></span>
                   </div>
 
-                  {/* 🍲 3. የታዘዙ ምግቦች አይነት እና ብዛት በግልጽ ማሳያ */}
+                  {/* የታዘዙ ምግቦች እና ብዛት */}
                   <div className="bg-gray-950 p-4 rounded-xl border border-gray-800">
                     <strong className="text-gray-400 text-xs uppercase tracking-wider block mb-3">የታዘዙ ምግቦች እና ብዛት:</strong>
                     {ord.items ? (
@@ -157,7 +156,7 @@ function Order({ user, handleLogout, API_BASE_URL }) {
                     )}
                   </div>
 
-                  {/* 🖼️ የክፍያ ስክሪንሾት ምስል ማሳያ */}
+                  {/* የክፍያ ስክሪንሾት ምስል ማሳያ */}
                   {extractedScreenshotUrl && (
                     <div className="bg-gray-950 p-4 rounded-xl border border-gray-800 inline-block w-full sm:w-auto">
                       <p className="text-xs text-blue-400 font-semibold mb-2">🖼️ የክፍያ ማረጋገጫ ስክሪንሾት:</p>
@@ -179,7 +178,7 @@ function Order({ user, handleLogout, API_BASE_URL }) {
                     </div>
                   )}
 
-                  {/* 👑 የሰራተኛ ምላሽ */}
+                  {/* የሰራተኛ ምላሽ */}
                   {ord.reply && (
                     <div className="bg-gray-950 p-4 rounded-xl border-l-4 border-emerald-500 border border-gray-800">
                       <p className="text-emerald-400 text-sm font-medium">
