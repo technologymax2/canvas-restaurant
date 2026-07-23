@@ -663,26 +663,26 @@ router.put('/api/employee/orders/:id', async (req, res) => {
     res.status(500).json({ success: false, error: 'ሰርቨር ስህተት አጋጥሟል' });
   }
 });
-// 📦 የደንበኛ ትዕዛዝ/መልዕክት ሁኔታ ማሻሻያ (Approve / Cancel እና handledBy)
+// 📦 የሰራተኛ ትዕዛዝ ማሻሻያ (Approve / Cancel እና handledBy) - ትክክለኛው የ Contact ሞዴል በመጠቀም
 app.put('/api/messages/:id', async (req, res) => {
   try {
     const { status, handledBy } = req.body;
     
-    // የትዕዛዙን ሰነድ በ ID ፈልጎ ማስተካከል (ማስታወሻ: የሞዴልዎ ስም Message ወይም Order ሊሆን ይችላል)
-    const updatedMessage = await Message.findByIdAndUpdate(
+    // እዚህ ጋር 'Contact' ሞዴሉን መጠቀም ይኖርብናል (ምክንያቱም ትዕዛዞቹ የሚቀመጡት Contact ስኪማ ላይ ስለሆነ)
+    const updatedOrder = await Contact.findByIdAndUpdate(
       req.params.id,
       { status, handledBy },
-      { new: true }
+      { new: { true } }
     );
-
-    if (!updatedMessage) {
-      return res.status(404).json({ success: false, error: 'መልዕክቱ ወይም ትዕዛዙ አልተገኘም' });
+    
+    if (!updatedOrder) {
+      return res.status(404).json({ success: false, error: 'ትዕዛዙ ወይም መልዕክቱ አልተገኘም' });
     }
 
-    res.json({ success: false, success: true, message: updatedMessage });
+    res.status(200).json({ success: true, message: 'ትዕዛዙ በተሳካ ሁኔታ ተስተካክሏል', order: updatedOrder });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, error: 'የሰርቨር ስህተት አጋጥሟል' });
+    console.error('ORDER UPDATE ERROR:', err);
+    res.status(500).json({ success: false, error: 'ሰርቨር ስህተት አጋጥሟል' });
   }
 });
 // ==========================================
