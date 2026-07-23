@@ -97,21 +97,20 @@ function EmployeeDashboard({ user, handleLogout, API_BASE_URL }) {
     }
   };
 
- // 🟢 ትዕዛዝ ማጽደቂያ (Approve) ወይም መሰረፊያ (Cancel) 
+  // 🟢 ትዕዛዝ ማጽደቂያ፣ ማጠናቀቂያ ወይም መሰረፊያ
   const handleUpdateOrderStatus = async (orderId, status) => {
     try {
-      // ⚠️ ዩአርኤሉን ከባክኤንድዎ ትክክለኛ ራውት ጋር ማስተካከል (לማሳሌ /api/messages/:id ወይም /api/orders/:id)
       const res = await fetch(`${API_BASE_URL}/api/messages/${orderId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          status: status, // 'Approved' ወይም 'Cancelled'
-          handledBy: user?.name || 'Employee' // ያጸደቀው/የሰረዘው ሰራተኛ ስም
+          status: status, // 'Approved', 'Completed', ወይም 'Cancelled'
+          handledBy: user?.name || 'Employee' 
         })
       });
       const data = await res.json();
       if (res.ok || data.success) {
-        alert(`✅ ትዕዛዙ ተደርጓል: ${status}`);
+        alert(`✅ ትዕዛዙ ተስተካክሏል: ${status}`);
         fetchData();
       } else {
         alert(data.error || 'ማስተካከል አልተቻለም');
@@ -191,72 +190,82 @@ function EmployeeDashboard({ user, handleLogout, API_BASE_URL }) {
         </div>
       </div>
 
-      {/* 📦 የደንበኞች ትዕዛዞች (Approve / Cancel እና ሰራተኛውን መቅረጫ) */}
+      {/* 📦 የደንበኞች ትዕዛዞች፣ የምግብ ዝርዝሮች እና የክፍያ ስክሪንሾት ማሳያ */}
       <div style={{ background: '#161b22', padding: '25px', borderRadius: '12px', border: '1px solid #30363d', boxShadow: '0 4px 12px rgba(0,0,0,0.3)' }}>
         <h3 style={{ marginBottom: '20px', color: '#58a6ff' }}>📦 የደንበኞች ትዕዛዞች እና የክፍያ ማረጋገጫዎች</h3>
         {loading ? <p>በመጫን ላይ...</p> : messages.length === 0 ? <p style={{ color: '#8b949e' }}>ምንም ትዕዛዝ የለም።</p> : (
           <div style={{ display: 'grid', gap: '20px' }}>
-            {messages.map((msg) => (
-              <div key={msg._id} style={{ background: '#0d1117', padding: '20px', borderRadius: '8px', border: '1px solid #30363d', boxShadow: '0 2px 8px rgba(0,0,0,0.2)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                  <p style={{ margin: 0, fontWeight: 'bold', fontSize: '16px', color: '#58a6ff' }}>ደንበኛ: {msg.name} ({msg.email})</p>
-                  <span style={{ padding: '4px 10px', borderRadius: '20px', fontSize: '12px', fontWeight: 'bold', background: msg.status === 'Approved' ? '#238636' : msg.status === 'Cancelled' ? '#da3633' : '#d29922', color: '#fff' }}>
-                    {msg.status || 'Pending'}
-                  </span>
-                </div>
+            {messages.map((msg) => {
+              // 🖼️ ከሜሴጅ ጽሁፍ ውስጥ የክፍያ ስክሪንሾት ዩአርኤል (URL) በራስ ሰር ማውጣት
+              let extractedScreenshotUrl = msg.paymentScreenshotUrl || '';
+              if (!extractedScreenshotUrl && msg.message && msg.message.includes('የክፍያ ስክሪንሾት:')) {
+                const parts = msg.message.split('የክፍያ ስክሪንሾት:');
+                if (parts[1]) {
+                  extractedScreenshotUrl = parts[1].trim().split(' ')[0];
+                }
+              }
 
-                <p style={{ margin: '5px 0', fontSize: '14px', color: '#8b949e' }}>ጠረጴዛ ቁጥር: <strong style={{ color: '#fff' }}>{msg.tableNumber || 'አልተገለጸም'}</strong></p>
+              return (
+                <div key={msg._id} style={{ background: '#0d1117', padding: '20px', borderRadius: '8px', border: '1px solid #30363d', boxShadow: '0 2px 8px rgba(0,0,0,0.2)' }}>
+                  
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                    <p style={{ margin: 0, fontWeight: 'bold', fontSize: '16px', color: '#58a6ff' }}>ደንበኛ: {msg.name} ({msg.email})</p>
+                    <span style={{ padding: '4px 10px', borderRadius: '20px', fontSize: '12px', fontWeight: 'bold', background: msg.status === 'Approved' ? '#238636' : msg.status === 'Completed' ? '#1f6feb' : msg.status === 'Cancelled' ? '#da3633' : '#d29922', color: '#fff' }}>
+                      {msg.status || 'በጥበቃ ላይ'}
+                    </span>
+                  </div>
 
-                {msg.items && (
-                  <div style={{ margin: '12px 0', padding: '12px', background: '#161b22', borderRadius: '6px', border: '1px solid #30363d' }}>
-                    <strong style={{ fontSize: '13px', color: '#8b949e' }}>የታዘዙ ምግቦች:</strong>
-                    <ul style={{ paddingLeft: '20px', margin: '5px 0 0 0' }}>
-                      {JSON.parse(msg.items).map((item, idx) => (
-                        <li key={idx} style={{ marginBottom: '6px', fontSize: '14px' }}>
-                          {item.name} - ብዛት: <strong>{item.quantity || 1}</strong> (ብር {item.price})
-                          {item.note && <span style={{ display: 'block', color: '#e67e22', fontSize: '12px', fontStyle: 'italic' }}>ማስታወሻ: {item.note}</span>}
-                        </li>
-                      ))}
-                    </ul>
-                    <p style={{ marginTop: '10px', marginBottom: 0, fontWeight: 'bold', color: '#2ecc71', fontSize: '15px' }}>
-                      አጠቃላይ ዋጋ: ብር {msg.totalAmount}
+                  <p style={{ margin: '5px 0', fontSize: '14px', color: '#8b949e' }}>ሙሉ መረጃ / መልዕክት: <strong style={{ color: '#fff' }}>{msg.message}</strong></p>
+
+                  {/* 🖼️ የክፍያ ስክሪንሾት ምስል በቀጥታ ማሳያ */}
+                  {extractedScreenshotUrl && (
+                    <div style={{ margin: '15px 0', padding: '12px', background: '#161b22', borderRadius: '8px', border: '1px solid #30363d', display: 'inline-block' }}>
+                      <p style={{ margin: '0 0 8px 0', fontSize: '13px', color: '#58a6ff', fontWeight: 'bold' }}>🖼️ የክፍያ ማረጋገጫ ስክሪንሾት:</p>
+                      <a href={extractedScreenshotUrl} target="_blank" rel="noopener noreferrer">
+                        <img 
+                          src={extractedScreenshotUrl} 
+                          alt="Payment Screenshot" 
+                          style={{ maxWidth: '220px', maxHeight: '220px', objectFit: 'cover', borderRadius: '6px', border: '1px solid #30363d', display: 'block' }} 
+                        />
+                      </a>
+                      <a href={extractedScreenshotUrl} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', marginTop: '8px', color: '#58a6ff', fontSize: '12px', textDecoration: 'underline' }}>
+                        ምስሉን በትልቅ መጠን ይክፈቱ (Open Full Image)
+                      </a>
+                    </div>
+                  )}
+
+                  {/* ✍️ ማን እንደገመገመው የሚያሳይ ጽሁፍ */}
+                  {msg.handledBy && (
+                    <p style={{ fontSize: '13px', color: '#8b949e', fontStyle: 'italic', margin: '8px 0' }}>
+                      ይህንን ትዕዛዝ የገመገመው/ያስተካከለው ሰራተኛ: <strong style={{ color: '#58a6ff' }}>{msg.handledBy}</strong>
                     </p>
+                  )}
+
+                  {/* 🔘 Approve / Completed / Cancel አዝራሮች */}
+                  <div style={{ display: 'flex', gap: '10px', marginTop: '15px', flexWrap: 'wrap' }}>
+                    <button 
+                      onClick={() => handleUpdateOrderStatus(msg._id, 'Approved')}
+                      style={{ background: '#238636', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13px' }}
+                    >
+                      ✅ አጽድቅ (Approve)
+                    </button>
+                    <button 
+                      onClick={() => handleUpdateOrderStatus(msg._id, 'Completed')}
+                      style={{ background: '#1f6feb', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13px' }}
+                    >
+                      🎉 ጨርስ (Completed)
+                    </button>
+                    <button 
+                      onClick={() => handleUpdateOrderStatus(msg._id, 'Cancelled')}
+                      style={{ background: '#da3633', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13px' }}
+                    >
+                      ❌ ሰርዝ (Cancel)
+                    </button>
                   </div>
-                )}
 
-                {/* የክፍያ ስክሪንሾት ሊንክ ወይም ምስል ካለ */}
-                {msg.paymentScreenshotUrl && (
-                  <div style={{ margin: '10px 0' }}>
-                    <a href={msg.paymentScreenshotUrl} target="_blank" rel="noopener noreferrer" style={{ color: '#58a6ff', fontSize: '14px', textDecoration: 'underline' }}>
-                      🖼️ የክፍያ ስክሪንሾት ይመልከቱ (View Screenshot)
-                    </a>
-                  </div>
-                )}
-
-                {/* ✍️ ማን እንዳጸደቀው/እንዳሰረዘው መረጃ */}
-                {msg.handledBy && (
-                  <p style={{ fontSize: '13px', color: '#8b949e', fontStyle: 'italic', margin: '8px 0' }}>
-                    ይህንን ትዕዛዝ የገመገመው/ያስተካከለው ሰራተኛ: <strong style={{ color: '#58a6ff' }}>{msg.handledBy}</strong>
-                  </p>
-                )}
-
-                {/* 🔘 Approve / Cancel አዝራሮች */}
-                <div style={{ display: 'flex', gap: '10px', marginTop: '15px' }}>
-                  <button 
-                    onClick={() => handleUpdateOrderStatus(msg._id, 'Approved')}
-                    style={{ background: '#238636', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13px' }}
-                  >
-                    ✅ አጽድቅ (Approve)
-                  </button>
-                  <button 
-                    onClick={() => handleUpdateOrderStatus(msg._id, 'Cancelled')}
-                    style={{ background: '#da3633', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13px' }}
-                  >
-                    ❌ ሰርዝ (Cancel)
-                  </button>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
