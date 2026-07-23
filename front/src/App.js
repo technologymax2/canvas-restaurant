@@ -200,7 +200,12 @@ const addToCart = (item) => {
         {currentScreen === 'home' && <Home setCurrentScreen={setCurrentScreen} />}
         
         {/* የምግብ ምናሌ ገጽ */}
-        {currentScreen === 'menu' && <FoodMenu API_BASE_URL={API_BASE_URL} addToCart={addToCart} />}
+       <FoodMenu 
+  API_BASE_URL={API_BASE_URL} 
+  cart={cart} 
+  addToCart={addToCart} 
+  decreaseQuantity={decreaseQuantity} 
+/>
         
         {/* የእኛ ልዩ ምግቦች ገጽ */}
         {currentScreen === 'our-foods' && <OurFoods API_BASE_URL={API_BASE_URL} addToCart={addToCart} />}
