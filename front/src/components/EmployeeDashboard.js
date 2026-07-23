@@ -97,10 +97,11 @@ function EmployeeDashboard({ user, handleLogout, API_BASE_URL }) {
     }
   };
 
-  // 🟢 ትዕዛዝ ማጽደቂያ (Approve) ወይም መሰረፊያ (Cancel) ፋንክሽን
+ // 🟢 ትዕዛዝ ማጽደቂያ (Approve) ወይም መሰረፊያ (Cancel) 
   const handleUpdateOrderStatus = async (orderId, status) => {
     try {
-      const res = await fetch(`${API_BASE_URL}/api/employee/orders/${orderId}`, {
+      // ⚠️ ዩአርኤሉን ከባክኤንድዎ ትክክለኛ ራውት ጋር ማስተካከል (לማሳሌ /api/messages/:id ወይም /api/orders/:id)
+      const res = await fetch(`${API_BASE_URL}/api/messages/${orderId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
