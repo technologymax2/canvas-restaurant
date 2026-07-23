@@ -7,21 +7,26 @@ function Cart({ cartItems, setCartItems, navigateTo, user, API_BASE_URL }) {
   const [screenshotFile, setScreenshotFile] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // ➕ የምግብ ብዛት መጨመሪያ
+  // ➕ የምግብ ብዛት መጨመሪያ በካርት ውስጥ
   const handleIncrease = (index) => {
     const updatedCart = [...cartItems];
-    updatedCart[index].quantity = (updatedCart[index].quantity || 1) + 1;
+    updatedCart[index] = {
+      ...updatedCart[index],
+      quantity: (updatedCart[index].quantity || 1) + 1
+    };
     setCartItems(updatedCart);
   };
 
-  // ➖ የምግብ ብዛት መቀነሻ
+  // ➖ የምግብ ብዛት መቀነሻ በካርት ውስጥ
   const handleDecrease = (index) => {
     const updatedCart = [...cartItems];
-    if (updatedCart[index].quantity > 1) {
-      updatedCart[index].quantity -= 1;
+    if ((updatedCart[index].quantity || 1) > 1) {
+      updatedCart[index] = {
+        ...updatedCart[index],
+        quantity: updatedCart[index].quantity - 1
+      };
       setCartItems(updatedCart);
     } else {
-      // ብዛቱ 1 ሆኖ ሲቀነስ ከተፈለገ ማጥፋት ይቻላል
       handleRemoveItem(index);
     }
   };
@@ -38,6 +43,7 @@ function Cart({ cartItems, setCartItems, navigateTo, user, API_BASE_URL }) {
     }
   };
 
+  // አጠቃላይ ዋጋን ማስላት
   const totalAmount = cartItems.reduce((total, item) => total + (Number(item.price) || 0) * (item.quantity || 1), 0);
 
   const handleCheckout = async (e) => {
@@ -130,9 +136,16 @@ function Cart({ cartItems, setCartItems, navigateTo, user, API_BASE_URL }) {
                 <div>
                   <h4 style={{ fontSize: '16px', marginBottom: '5px' }}>{item.name}</h4>
                   <p style={{ color: '#8b949e', fontSize: '14px' }}>የአንዱ ዋጋ: ብር {item.price}</p>
+                  
+                  {/* 📝 ደንበኛው ያስገባው ማስታወሻ ወይም ኢሞጂ ካለ እዚህ ይታያል */}
+                  {item.note && (
+                    <p style={{ color: '#e67e22', fontSize: '13px', fontStyle: 'italic', marginTop: '4px' }}>
+                      ማስታወሻ: {item.note}
+                    </p>
+                  )}
                 </div>
 
-                {/* የብዛት መጨመሪያ እና መቀነሻ (Quantity Controls) */}
+                {/* ➕ እና ➖ የብዛት መቆጣጠሪያ */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <button 
                     onClick={() => handleDecrease(index)}
