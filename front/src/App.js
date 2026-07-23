@@ -159,6 +159,7 @@ function App() {
         <button onClick={() => setCurrentScreen('home')}>Home</button>
         <button onClick={() => setCurrentScreen('menu')}>Menu</button>
         <button onClick={() => setCurrentScreen('our-foods')}>Our Foods</button>
+        <button onClick={() => setCurrentScreen('order')}>Orders</button>
         <button onClick={() => setCurrentScreen('contact')}>Contact</button>
         
         {user ? (
@@ -184,16 +185,23 @@ function App() {
       <Navbar />
       <main>
         {currentScreen === 'home' && <Home setCurrentScreen={setCurrentScreen} />}
-        {currentScreen === 'menu' && <FoodMenu addToCart={addToCart} />}
         
-        {/* OurFoods ኮምፖነንት API_BASE_URL ተካትቶበታል */}
+        {/* የምግብ ምናሌ ገጽ */}
+        {currentScreen === 'menu' && <FoodMenu API_BASE_URL={API_BASE_URL} addToCart={addToCart} />}
+        
+        {/* የእኛ ልዩ ምግቦች ገጽ */}
         {currentScreen === 'our-foods' && <OurFoods API_BASE_URL={API_BASE_URL} addToCart={addToCart} />}
         
-        {currentScreen === 'order' && <Order />}
-        {currentScreen === 'contact' && <ContactUs />}
-        {currentScreen === 'cart' && <Cart cart={cart} />}
+        {/* የትዕዛዞች ገጽ */}
+        {currentScreen === 'order' && <Order user={user} API_BASE_URL={API_BASE_URL} />}
         
-        {/* Dashboards - Secured by Role */}
+        {/* እኛን ማግኛ ገጽ */}
+        {currentScreen === 'contact' && <ContactUs user={user} API_BASE_URL={API_BASE_URL} fetchMessages={fetchMessages} />}
+        
+        {/* የካርት ገጽ */}
+        {currentScreen === 'cart' && <Cart cartItems={cart} setCartItems={setCart} navigateTo={setCurrentScreen} />}
+        
+        {/* ዳሽቦርዶች (በሮል የተጠበቁ) */}
         {currentScreen === 'admin-dashboard' && user?.role === 'admin' && (
          <AdminDashboard
             user={user}
