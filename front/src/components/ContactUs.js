@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import './Footer.css'; // ወይም የራሱ የስታይል ፋይል ካለው መቀየር ይቻላል
+import './Footer.css';
 
 function ContactUs({ user, API_BASE_URL, fetchMessages }) {
   const [formData, setFormData] = useState({
