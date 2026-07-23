@@ -97,14 +97,13 @@ function EmployeeDashboard({ user, handleLogout, API_BASE_URL }) {
     }
   };
 
-  // 🟢 ትዕዛዝ ማጽደቂያ፣ ማጠናቀቂያ ወይም መሰረፊያ
   const handleUpdateOrderStatus = async (orderId, status) => {
     try {
       const res = await fetch(`${API_BASE_URL}/api/messages/${orderId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          status: status, // 'Approved', 'Completed', ወይም 'Cancelled'
+          status: status, 
           handledBy: user?.name || 'Employee' 
         })
       });
@@ -121,82 +120,92 @@ function EmployeeDashboard({ user, handleLogout, API_BASE_URL }) {
   };
 
   return (
-    <div style={{ padding: '30px', color: '#fff', maxWidth: '1100px', margin: '0 auto', fontFamily: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif' }}>
+    <div className="max-w-6xl mx-auto px-4 py-8 text-white font-sans">
       
-      {/* 🌟 ሄደር (Header) */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px', background: '#161b22', padding: '20px', borderRadius: '12px', border: '1px solid #30363d', boxShadow: '0 4px 12px rgba(0,0,0,0.3)' }}>
-        <h2 style={{ margin: 0, fontSize: '22px', color: '#58a6ff' }}>👨‍🍳 የሰራተኛ መቆጣጠሪያ ሰሌዳ (Employee Dashboard)</h2>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-          <span style={{ color: '#8b949e', fontSize: '15px' }}>እንኳን ደህና መጡ፣ <strong style={{ color: '#fff' }}>{user?.name}</strong></span>
-          <button onClick={handleLogout} style={{ background: '#da3633', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}>
-            ውጣ (Logout)
-          </button>
+      {/* 🌟 Header Section with Logout */}
+      <div className="flex flex-wrap justify-between items-center bg-gray-900 p-6 rounded-2xl border border-gray-800 shadow-xl mb-8 gap-4">
+        <div>
+          <h2 className="text-xl sm:text-2xl font-bold text-blue-400">👨‍🍳 የሰራተኛ መቆጣጠሪያ ሰሌዳ (Employee Dashboard)</h2>
+          <p className="text-gray-400 text-sm mt-1">እንኳን ደህና መጡ፣ <strong className="text-white">{user?.name}</strong></p>
         </div>
+        <button 
+          onClick={handleLogout} 
+          className="bg-red-600 hover:bg-red-700 text-white font-bold px-5 py-2.5 rounded-xl transition duration-200 shadow-lg text-sm"
+        >
+          🚪 ውጣ (Logout)
+        </button>
       </div>
 
       {/* 🍲 ምግብ መመዝገቢያ ፎርም */}
-      <div style={{ background: '#161b22', padding: '25px', borderRadius: '12px', border: '1px solid #30363d', marginBottom: '30px', boxShadow: '0 4px 12px rgba(0,0,0,0.3)' }}>
-        <h3 style={{ marginBottom: '15px', color: '#58a6ff' }}>{editingFoodId ? '✏️ የምግብ መረጃ አስተካክል' : '➕ አዲስ የምግብ ምናሌ ጨምር'}</h3>
-        <form onSubmit={handleFoodSubmit} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '15px', alignItems: 'flex-end' }}>
+      <div className="bg-gray-900 p-6 sm:p-8 rounded-2xl border border-gray-800 shadow-xl mb-8">
+        <h3 className="text-lg font-semibold text-blue-400 mb-4">{editingFoodId ? '✏️ የምግብ መረጃ አስተካክል' : '➕ አዲስ የምግብ ምናሌ ጨምር'}</h3>
+        <form onSubmit={handleFoodSubmit} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
           <div>
-            <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', color: '#8b949e' }}>የምግቡ ስም:</label>
-            <input type="text" name="name" value={foodForm.name} onChange={handleFoodChange} required style={{ width: '100%', padding: '10px', background: '#0d1117', border: '1px solid #30363d', color: '#fff', borderRadius: '6px' }} />
+            <label className="block text-xs text-gray-400 mb-1">የምግቡ ስም:</label>
+            <input type="text" name="name" value={foodForm.name} onChange={handleFoodChange} required className="w-full p-3 bg-gray-950 border border-gray-800 rounded-xl text-white text-sm" />
           </div>
           <div>
-            <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', color: '#8b949e' }}>መግለጫ (Description):</label>
-            <input type="text" name="description" value={foodForm.description} onChange={handleFoodChange} required style={{ width: '100%', padding: '10px', background: '#0d1117', border: '1px solid #30363d', color: '#fff', borderRadius: '6px' }} />
+            <label className="block text-xs text-gray-400 mb-1">መግለጫ (Description):</label>
+            <input type="text" name="description" value={foodForm.description} onChange={handleFoodChange} required className="w-full p-3 bg-gray-950 border border-gray-800 rounded-xl text-white text-sm" />
           </div>
           <div>
-            <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', color: '#8b949e' }}>ዋጋ (ብር):</label>
-            <input type="number" name="price" value={foodForm.price} onChange={handleFoodChange} required style={{ width: '100%', padding: '10px', background: '#0d1117', border: '1px solid #30363d', color: '#fff', borderRadius: '6px' }} />
+            <label className="block text-xs text-gray-400 mb-1">ዋጋ (ብር):</label>
+            <input type="number" name="price" value={foodForm.price} onChange={handleFoodChange} required className="w-full p-3 bg-gray-950 border border-gray-800 rounded-xl text-white text-sm" />
           </div>
           <div>
-            <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', color: '#8b949e' }}>ምስል (Image):</label>
-            <input type="file" accept="image/*" onChange={handleImageChange} required={!editingFoodId} style={{ width: '100%', padding: '8px', background: '#0d1117', border: '1px solid #30363d', color: '#fff', borderRadius: '6px' }} />
+            <label className="block text-xs text-gray-400 mb-1">ምስል (Image):</label>
+            <input type="file" accept="image/*" onChange={handleImageChange} required={!editingFoodId} className="w-full p-2 bg-gray-950 border border-gray-800 rounded-xl text-white text-xs file:mr-4 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white" />
           </div>
-          <div style={{ display: 'flex', gap: '10px' }}>
-            <button type="submit" style={{ background: '#238636', color: '#fff', border: 'none', padding: '10px 20px', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer', width: '100%' }}>
-              {editingFoodId ? 'አስተካክል' : 'ጨምር'}
+          <div className="sm:col-span-2 lg:col-span-4 flex gap-3 mt-2">
+            <button type="submit" className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6 py-3 rounded-xl text-sm transition duration-200">
+              {editingFoodId ? 'ምግቡን አስተካክል' : 'ምግቡን ጨምር'}
             </button>
             {editingFoodId && (
-              <button type="button" onClick={() => { setEditingFoodId(null); setFoodForm({ name: '', description: '', price: '' }); }} style={{ background: '#6e7681', color: '#fff', border: 'none', padding: '10px 15px', borderRadius: '6px', cursor: 'pointer' }}>
+              <button type="button" onClick={() => { setEditingFoodId(null); setFoodForm({ name: '', description: '', price: '' }); }} className="bg-gray-700 hover:bg-gray-600 text-white px-5 py-3 rounded-xl text-sm">
                 ሰርዝ
               </button>
             )}
           </div>
         </form>
-        {foodStatus && <p style={{ marginTop: '12px', fontWeight: 'bold', color: '#2ecc71' }}>{foodStatus}</p>}
+        {foodStatus && <p className="mt-4 font-semibold text-emerald-400 text-sm">{foodStatus}</p>}
       </div>
 
       {/* 📋 የምግቦች ዝርዝር */}
-      <div style={{ background: '#161b22', padding: '25px', borderRadius: '12px', border: '1px solid #30363d', marginBottom: '30px', boxShadow: '0 4px 12px rgba(0,0,0,0.3)' }}>
-        <h3 style={{ marginBottom: '15px', color: '#58a6ff' }}>📋 የምግብ ምናሌዎች ዝርዝር</h3>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '15px' }}>
+      <div className="bg-gray-900 p-6 sm:p-8 rounded-2xl border border-gray-800 shadow-xl mb-8">
+        <h3 className="text-lg font-semibold text-blue-400 mb-4">📋 የምግብ ምናሌዎች ዝርዝር</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {foods.map((food) => (
-            <div key={food._id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#0d1117', padding: '12px', borderRadius: '8px', border: '1px solid #30363d' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                {food.imageUrl && <img src={food.imageUrl} alt={food.name} style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: '6px' }} />}
+            <div key={food._id} className="flex items-center justify-between bg-gray-950 p-4 rounded-xl border border-gray-800">
+              <div className="flex items-center gap-3">
+                {food.imageUrl && <img src={food.imageUrl} alt={food.name} className="w-12 h-12 object-cover rounded-lg border border-gray-800" />}
                 <div>
-                  <h4 style={{ margin: '0 0 4px 0', fontSize: '15px' }}>{food.name}</h4>
-                  <p style={{ margin: 0, color: '#2ecc71', fontWeight: 'bold', fontSize: '14px' }}>ብር {food.price}</p>
+                  <h4 className="font-semibold text-sm text-white">{food.name}</h4>
+                  <p className="text-emerald-400 text-xs font-bold">ብር {food.price}</p>
                 </div>
               </div>
-              <div style={{ display: 'flex', gap: '6px' }}>
-                <button onClick={() => handleEditClick(food)} style={{ background: '#d29922', color: '#fff', border: 'none', padding: '6px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>✏️</button>
-                <button onClick={() => handleDeleteFood(food._id)} style={{ background: '#da3633', color: '#fff', border: 'none', padding: '6px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>🗑️</button>
+              <div className="flex gap-2">
+                <button onClick={() => handleEditClick(food)} className="bg-amber-600 hover:bg-amber-700 text-white p-2 rounded-lg text-xs">✏️</button>
+                <button onClick={() => handleDeleteFood(food._id)} className="bg-red-600 hover:bg-red-700 text-white p-2 rounded-lg text-xs">🗑️</button>
               </div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* 📦 የደንበኞች ትዕዛዞች፣ የምግብ ዝርዝሮች እና የክፍያ ስክሪንሾት ማሳያ */}
-      <div style={{ background: '#161b22', padding: '25px', borderRadius: '12px', border: '1px solid #30363d', boxShadow: '0 4px 12px rgba(0,0,0,0.3)' }}>
-        <h3 style={{ marginBottom: '20px', color: '#58a6ff' }}>📦 የደንበኞች ትዕዛዞች እና የክፍያ ማረጋገጫዎች</h3>
-        {loading ? <p>በመጫን ላይ...</p> : messages.length === 0 ? <p style={{ color: '#8b949e' }}>ምንም ትዕዛዝ የለም።</p> : (
-          <div style={{ display: 'grid', gap: '20px' }}>
-            {messages.map((msg) => {
-              // 🖼️ ከሜሴጅ ጽሁፍ ውስጥ የክፍያ ስክሪንሾት ዩአርኤል (URL) በራስ ሰር ማውጣት
+      {/* 📦 የደንበኞች ትዕዛዞች ክፍል */}
+      <div className="bg-gray-900 p-6 sm:p-8 rounded-2xl border border-gray-800 shadow-xl">
+        <h3 className="text-lg font-semibold text-blue-400 mb-6">📦 የደንበኞች ትዕዛዞች እና የክፍያ ማረጋገጫዎች</h3>
+        {loading ? (
+          <p className="text-gray-400 text-center py-8">በመጫን ላይ...</p>
+        ) : messages.length === 0 ? (
+          <p className="text-gray-400 text-center py-8">ምንም ትዕዛዝ የለም።</p>
+        ) : (
+          <div className="grid gap-6">
+            {messages.map((msg, index) => {
+              // 🔢 የትዕዛዝ ቁጥር (ቁጥር ብቻ እንዲሆን ከ _id ወይም ከ orderNumber በመውሰድ)
+              const numericOrderNo = msg.orderNumber || `${index + 101}`;
+
+              // 🖼️ የክፍያ ስክሪንሾት ዩአርኤል
               let extractedScreenshotUrl = msg.paymentScreenshotUrl || '';
               if (!extractedScreenshotUrl && msg.message && msg.message.includes('የክፍያ ስክሪንሾት:')) {
                 const parts = msg.message.split('የክፍያ ስክሪንሾት:');
@@ -205,59 +214,105 @@ function EmployeeDashboard({ user, handleLogout, API_BASE_URL }) {
                 }
               }
 
+              let badgeStyle = 'bg-amber-500/10 text-amber-400 border-amber-500/30';
+              if (msg.status === 'Approved') badgeStyle = 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30';
+              else if (msg.status === 'Completed') badgeStyle = 'bg-blue-500/10 text-blue-400 border-blue-500/30';
+              else if (msg.status === 'Cancelled') badgeStyle = 'bg-red-500/10 text-red-400 border-red-500/30';
+
               return (
-                <div key={msg._id} style={{ background: '#0d1117', padding: '20px', borderRadius: '8px', border: '1px solid #30363d', boxShadow: '0 2px 8px rgba(0,0,0,0.2)' }}>
+                <div key={msg._id} className="bg-gray-950 p-6 rounded-2xl border border-gray-800 shadow-lg space-y-4">
                   
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                    <p style={{ margin: 0, fontWeight: 'bold', fontSize: '16px', color: '#58a6ff' }}>ደንበኛ: {msg.name} ({msg.email})</p>
-                    <span style={{ padding: '4px 10px', borderRadius: '20px', fontSize: '12px', fontWeight: 'bold', background: msg.status === 'Approved' ? '#238636' : msg.status === 'Completed' ? '#1f6feb' : msg.status === 'Cancelled' ? '#da3633' : '#d29922', color: '#fff' }}>
+                  {/* 🔖 የትዕዛዝ ቁጥር እና ስታተስ */}
+                  <div className="flex flex-wrap justify-between items-center pb-3 border-b border-gray-800 gap-2">
+                    <div>
+                      <span className="text-xs text-gray-400 block">የትዕዛዝ ቁጥር (Order Number):</span>
+                      <span className="text-blue-400 font-extrabold text-lg">#{numericOrderNo}</span>
+                    </div>
+                    <span className={`px-3 py-1 rounded-full text-xs font-bold border ${badgeStyle}`}>
                       {msg.status || 'በጥበቃ ላይ'}
                     </span>
                   </div>
 
-                  <p style={{ margin: '5px 0', fontSize: '14px', color: '#8b949e' }}>ሙሉ መረጃ / መልዕክት: <strong style={{ color: '#fff' }}>{msg.message}</strong></p>
+                  {/* 👤 የደንበኛ መረጃ */}
+                  <div className="text-sm text-gray-300 flex flex-wrap justify-between gap-2">
+                    <span>ደንበኛ: <strong className="text-white">{msg.name}</strong> ({msg.email})</span>
+                    <span>ጠረጴዛ ቁጥር: <strong className="text-white">{msg.tableNumber || 'አልተገለጸም'}</strong></span>
+                  </div>
 
-                  {/* 🖼️ የክፍያ ስክሪንሾት ምስል በቀጥታ ማሳያ */}
+                  {/* 🍲 የታዘዙ ምግቦች ዝርዝር እና ብዛት (በግልጽ የሚታይበት) */}
+                  <div className="bg-gray-900 p-4 rounded-xl border border-gray-800">
+                    <strong className="text-gray-400 text-xs uppercase tracking-wider block mb-2">የታዘዙ ምግቦች እና ብዛት:</strong>
+                    {msg.items ? (
+                      <ul className="divide-y divide-gray-800/60">
+                        {(() => {
+                          try {
+                            const parsedItems = typeof msg.items === 'string' ? JSON.parse(msg.items) : msg.items;
+                            return parsedItems.map((item, idx) => (
+                              <li key={idx} className="py-2 flex justify-between items-center text-sm">
+                                <div>
+                                  <span className="text-white font-bold">{item.name}</span>
+                                  <span className="text-blue-400 text-xs ml-2 bg-blue-950 px-2 py-0.5 rounded-md border border-blue-800">ብዛት: {item.quantity || 1}</span>
+                                </div>
+                                <span className="text-emerald-400 font-semibold">ብር {item.price * (item.quantity || 1)}</span>
+                              </li>
+                            ));
+                          } catch (e) {
+                            return <p className="text-sm text-gray-300">{msg.message}</p>;
+                          }
+                        })()}
+                      </ul>
+                    ) : (
+                      <p className="text-sm text-gray-300">{msg.message}</p>
+                    )}
+                    
+                    {msg.totalAmount && (
+                      <div className="mt-3 pt-2 border-t border-gray-800 flex justify-between items-center text-sm font-bold">
+                        <span className="text-gray-300">አጠቃላይ የሚከፈል ዋጋ:</span>
+                        <span className="text-emerald-400 text-base">ብር {msg.totalAmount}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* 🖼️ የክፍያ ስክሪንሾት ምስል ማሳያ */}
                   {extractedScreenshotUrl && (
-                    <div style={{ margin: '15px 0', padding: '12px', background: '#161b22', borderRadius: '8px', border: '1px solid #30363d', display: 'inline-block' }}>
-                      <p style={{ margin: '0 0 8px 0', fontSize: '13px', color: '#58a6ff', fontWeight: 'bold' }}>🖼️ የክፍያ ማረጋገጫ ስክሪንሾት:</p>
+                    <div className="bg-gray-900 p-4 rounded-xl border border-gray-800 inline-block w-full sm:w-auto">
+                      <p className="text-xs text-blue-400 font-semibold mb-2">🖼️ የክፍያ ማረጋገጫ ስክሪንሾት:</p>
                       <a href={extractedScreenshotUrl} target="_blank" rel="noopener noreferrer">
                         <img 
                           src={extractedScreenshotUrl} 
                           alt="Payment Screenshot" 
-                          style={{ maxWidth: '220px', maxHeight: '220px', objectFit: 'cover', borderRadius: '6px', border: '1px solid #30363d', display: 'block' }} 
+                          className="w-full sm:w-48 h-48 object-cover rounded-lg border border-gray-800 hover:opacity-95 transition-opacity" 
                         />
                       </a>
-                      <a href={extractedScreenshotUrl} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', marginTop: '8px', color: '#58a6ff', fontSize: '12px', textDecoration: 'underline' }}>
-                        ምስሉን በትልቅ መጠን ይክፈቱ (Open Full Image)
+                      <a href={extractedScreenshotUrl} target="_blank" rel="noopener noreferrer" className="inline-block mt-2 text-blue-400 text-xs underline">
+                        ምስሉን በትልቅ መጠን ይክፈቱ
                       </a>
                     </div>
                   )}
 
-                  {/* ✍️ ማን እንደገመገመው የሚያሳይ ጽሁፍ */}
                   {msg.handledBy && (
-                    <p style={{ fontSize: '13px', color: '#8b949e', fontStyle: 'italic', margin: '8px 0' }}>
-                      ይህንን ትዕዛዝ የገመገመው/ያስተካከለው ሰራተኛ: <strong style={{ color: '#58a6ff' }}>{msg.handledBy}</strong>
+                    <p className="text-xs text-gray-400 italic">
+                      ማስተካከያ የሰጠበት ሰራተኛ: <span className="text-blue-400 font-semibold not-italic">{msg.handledBy}</span>
                     </p>
                   )}
 
                   {/* 🔘 Approve / Completed / Cancel አዝራሮች */}
-                  <div style={{ display: 'flex', gap: '10px', marginTop: '15px', flexWrap: 'wrap' }}>
+                  <div className="flex gap-3 pt-2 flex-wrap">
                     <button 
                       onClick={() => handleUpdateOrderStatus(msg._id, 'Approved')}
-                      style={{ background: '#238636', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13px' }}
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 rounded-xl text-xs transition duration-200"
                     >
                       ✅ አጽድቅ (Approve)
                     </button>
                     <button 
                       onClick={() => handleUpdateOrderStatus(msg._id, 'Completed')}
-                      style={{ background: '#1f6feb', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13px' }}
+                      className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded-xl text-xs transition duration-200"
                     >
                       🎉 ጨርስ (Completed)
                     </button>
                     <button 
                       onClick={() => handleUpdateOrderStatus(msg._id, 'Cancelled')}
-                      style={{ background: '#da3633', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13px' }}
+                      className="bg-red-600 hover:bg-red-700 text-white font-bold px-4 py-2 rounded-xl text-xs transition duration-200"
                     >
                       ❌ ሰርዝ (Cancel)
                     </button>
