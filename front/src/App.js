@@ -138,21 +138,39 @@ function App() {
     }
   };
 
-const addToCart = (item) => {
+  // 🛒 ወደ ካርት እቃ መጨመሪያ (ከማስታወሻ እና ብዛት ጋር)
+  const addToCart = (item) => {
     setCart(prevCart => {
       const existingIndex = prevCart.findIndex(cartItem => (cartItem._id || cartItem.id) === (item._id || item.id));
       if (existingIndex > -1) {
-        // ምግብ ቀድሞውኑ ካርት ውስጥ ካለ ብዛቱን (quantity) እንጨምራለን
         const updatedCart = [...prevCart];
         updatedCart[existingIndex] = {
           ...updatedCart[existingIndex],
-          quantity: (updatedCart[existingIndex].quantity || 1) + 1
+          quantity: (updatedCart[existingIndex].quantity || 1) + 1,
+          note: item.note !== undefined ? item.note : updatedCart[existingIndex].note
         };
         return updatedCart;
       } else {
-        // አዲስ ምግብ ከሆነ በ quantity: 1 እናስገባዋለን
-        return [...prevCart, { ...item, quantity: 1 }];
+        return [...prevCart, { ...item, quantity: 1, note: item.note || '' }];
       }
+    });
+  };
+
+  // ➖ ከካርት ውስጥ የምግብ ብዛት መቀነሻ ወይም ማጥፊያ
+  const decreaseQuantity = (itemId) => {
+    setCart(prevCart => {
+      const existingIndex = prevCart.findIndex(cartItem => (cartItem._id || cartItem.id) === itemId);
+      if (existingIndex > -1) {
+        const updatedCart = [...prevCart];
+        if (updatedCart[existingIndex].quantity > 1) {
+          updatedCart[existingIndex].quantity -= 1;
+          return updatedCart;
+        } else {
+          // ብዛቱ 1 ሆኖ ሲቀነስ ሙሉውን ከካርት እናጠፋዋለን
+          return prevCart.filter((_, index) => index !== existingIndex);
+        }
+      }
+      return prevCart;
     });
   };
 
@@ -187,7 +205,7 @@ const addToCart = (item) => {
         )}
         
         <button onClick={() => setCurrentScreen('cart')} className="bg-yellow-500 px-4 py-1 rounded-full font-bold">
-          Cart ({cart.length})
+          Cart ({cart.reduce((total, item) => total + (item.quantity || 1), 0)})
         </button>
       </div>
     </nav>
@@ -199,13 +217,15 @@ const addToCart = (item) => {
       <main>
         {currentScreen === 'home' && <Home setCurrentScreen={setCurrentScreen} />}
         
-        {/* የምግብ ምናሌ ገጽ */}
-       <FoodMenu 
-  API_BASE_URL={API_BASE_URL} 
-  cart={cart} 
-  addToCart={addToCart} 
-  decreaseQuantity={decreaseQuantity} 
-/>
+        {/* የምግብ ምናሌ ገጽ (በ currentScreen === 'menu' ብቻ እንዲታይ ተደረገ) */}
+        {currentScreen === 'menu' && (
+          <FoodMenu 
+            API_BASE_URL={API_BASE_URL} 
+            cart={cart} 
+            addToCart={addToCart} 
+            decreaseQuantity={decreaseQuantity} 
+          />
+        )}
         
         {/* የእኛ ልዩ ምግቦች ገጽ */}
         {currentScreen === 'our-foods' && <OurFoods API_BASE_URL={API_BASE_URL} addToCart={addToCart} />}
@@ -216,19 +236,20 @@ const addToCart = (item) => {
         {/* እኛን ማግኛ ገጽ */}
         {currentScreen === 'contact' && <ContactUs user={user} API_BASE_URL={API_BASE_URL} fetchMessages={fetchMessages} />}
         
-      {currentScreen === 'cart' && (
-  <Cart 
-    cartItems={cart} 
-    setCartItems={setCart} 
-    navigateTo={setCurrentScreen} 
-    user={user} 
-    API_BASE_URL={API_BASE_URL} 
-  />
-)}
+        {/* የካርት ገጽ */}
+        {currentScreen === 'cart' && (
+          <Cart 
+            cartItems={cart} 
+            setCartItems={setCart} 
+            navigateTo={setCurrentScreen} 
+            user={user} 
+            API_BASE_URL={API_BASE_URL} 
+          />
+        )}
         
         {/* ዳሽቦርዶች (በሮል የተጠበቁ) */}
         {currentScreen === 'admin-dashboard' && user?.role === 'admin' && (
-         <AdminDashboard
+          <AdminDashboard
             user={user}
             handleLogout={handleLogout}
             adminMessages={adminMessages}
