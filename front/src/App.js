@@ -264,9 +264,9 @@ function App() {
             setProjects={setProjects}
           />
         )}
-        {currentScreen === 'employee-dashboard' && user?.role === 'employee' && (
-          <EmployeeDashboard handleLogout={handleLogout} API_BASE_URL={API_BASE_URL} />
-        )}
+      {currentScreen === 'employee-dashboard' && user?.role === 'employee' && (
+  <EmployeeDashboard user={user} handleLogout={handleLogout} API_BASE_URL={API_BASE_URL} />
+)}
 
         {currentScreen === 'login' && (
           <Login 
