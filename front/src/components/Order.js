@@ -85,12 +85,11 @@ function Order({ user, handleLogout, API_BASE_URL }) {
               badgeStyle = 'bg-red-500/10 text-red-400 border-red-500/30';
             }
 
-            // የትዕዛዝ ቁጥር (ቁጥር ብቻ እንዲሆን የተደረገ)
+            // የትዕዛዝ ቁጥር በቁጥር ብቻ እንዲሆን ማስተካከል
             const numericOrderNo = ord.orderNumber 
               ? String(ord.orderNumber).replace(/\D/g, '') 
               : (ord._id ? parseInt(ord._id.slice(-6), 16) : index + 1001);
 
-            // የክፍያ ስክሪንሾት ዩአርኤል ማውጣት
             let extractedScreenshotUrl = ord.paymentScreenshotUrl || '';
             if (!extractedScreenshotUrl && ord.message && ord.message.includes('የክፍያ ስክሪንሾት:')) {
               const parts = ord.message.split('የክፍያ ስክሪንሾት:');
@@ -120,7 +119,7 @@ function Order({ user, handleLogout, API_BASE_URL }) {
                     <span>ጠረጴዛ ቁጥር: <strong className="text-white">{ord.tableNumber || 'አልተገለጸም'}</strong></span>
                   </div>
 
-                  {/* የታዘዙ ምግቦች እና ብዛት */}
+                  {/* የታዘዙ ምግቦች እና ብዛት በግልጽ ማሳያ */}
                   <div className="bg-gray-950 p-4 rounded-xl border border-gray-800">
                     <strong className="text-gray-400 text-xs uppercase tracking-wider block mb-3">የታዘዙ ምግቦች እና ብዛት:</strong>
                     {ord.items ? (
