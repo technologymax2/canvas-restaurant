@@ -663,6 +663,28 @@ router.put('/api/employee/orders/:id', async (req, res) => {
     res.status(500).json({ success: false, error: 'ሰርቨር ስህተት አጋጥሟል' });
   }
 });
+// 📦 የደንበኛ ትዕዛዝ/መልዕክት ሁኔታ ማሻሻያ (Approve / Cancel እና handledBy)
+app.put('/api/messages/:id', async (req, res) => {
+  try {
+    const { status, handledBy } = req.body;
+    
+    // የትዕዛዙን ሰነድ በ ID ፈልጎ ማስተካከል (ማስታወሻ: የሞዴልዎ ስም Message ወይም Order ሊሆን ይችላል)
+    const updatedMessage = await Message.findByIdAndUpdate(
+      req.params.id,
+      { status, handledBy },
+      { new: true }
+    );
+
+    if (!updatedMessage) {
+      return res.status(404).json({ success: false, error: 'መልዕክቱ ወይም ትዕዛዙ አልተገኘም' });
+    }
+
+    res.json({ success: false, success: true, message: updatedMessage });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, error: 'የሰርቨር ስህተት አጋጥሟል' });
+  }
+});
 // ==========================================
 // 7. የሰርቨር ጤንነት እና ማስነሻ (SERVER START)
 // ==========================================
