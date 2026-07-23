@@ -15,12 +15,12 @@ function EmployeeDashboard({ user, handleLogout, API_BASE_URL }) {
   const [foodImage, setFoodImage] = useState(null);
   const [foodStatus, setFoodStatus] = useState('');
   
-  // ✏️ ኤዲት የሚደረግ የምግብ ഐዲ (ካለ)
+  // ✏️ ኤዲት የሚደረግ የምግብ ID (ካለ)
   const [editingFoodId, setEditingFoodId] = useState(null);
 
   const fetchData = useCallback(async () => {
     try {
-      // መልዕክቶችን እና ምግቦችን በአንድ ላይ ማምጣት
+      // መልዕክቶችን/ትዕዛዞችን እና ምግቦችን በአንድ ላይ ማምጣት
       const [msgRes, foodRes] = await Promise.all([
         fetch(`${API_BASE_URL}/api/messages`),
         fetch(`${API_BASE_URL}/api/foods`)
@@ -243,7 +243,7 @@ function EmployeeDashboard({ user, handleLogout, API_BASE_URL }) {
         </div>
       </div>
 
-      {/* 📦 የደንበኞች ትዕዛዞች ሴክሽን */}
+      {/* 📦 የደንበኞች ትዕዛዞች እና መልዕክቶች ሴክሽን (ከማስታወሻ ጋር) */}
       <div className="card" style={{ background: '#161b22', padding: '20px', borderRadius: '8px', border: '1px solid #30363d' }}>
         <h3>📦 የደንበኞች ትዕዛዞች እና ጥያቄዎች</h3>
         {loading ? <p>በመጫን ላይ...</p> : messages.length === 0 ? <p>ምንም አዲስ መልዕክት የለም።</p> : (
@@ -251,7 +251,30 @@ function EmployeeDashboard({ user, handleLogout, API_BASE_URL }) {
             {messages.map((msg) => (
               <div key={msg._id} style={{ background: '#21262d', padding: '15px', borderRadius: '6px', border: '1px solid #30363d' }}>
                 <p><strong>ከ:</strong> {msg.name} ({msg.email})</p>
-                <p><strong>መልዕክት:</strong> {msg.message}</p>
+                
+                {/* 🛒 ደንበኛው ያዘዛቸው ምግቦች፣ ብዛት እና ማስታወሻዎች ካሉ */}
+                {msg.items && (
+                  <div style={{ margin: '10px 0', padding: '10px', background: '#161b22', borderRadius: '4px' }}>
+                    <strong>የታዘዙ ምግቦች:</strong>
+                    <ul style={{ paddingLeft: '20px', marginTop: '5px' }}>
+                      {JSON.parse(msg.items).map((item, idx) => (
+                        <li key={idx} style={{ marginBottom: '5px' }}>
+                          {item.name} - ብዛት: {item.quantity || 1} (ብር {item.price})
+                          {item.note && (
+                            <span style={{ display: 'block', color: '#e67e22', fontSize: '13px', fontStyle: 'italic' }}>
+                              ማስታወሻ: {item.note}
+                            </span>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                    <p style={{ marginTop: '8px', fontWeight: 'bold', color: '#2ecc71' }}>
+                      አጠቃላይ ዋጋ: ብር {msg.totalAmount} | ጠረጴዛ ቁጥር: {msg.tableNumber || 'አልተገለጸም'}
+                    </p>
+                  </div>
+                )}
+
+                <p><strong>መልዕክት:</strong> {msg.message || 'ምንም ተጨማሪ መልዕክት የለም'}</p>
                 <p><strong>ሁኔታ:</strong> <span style={{ color: msg.reply ? '#2ecc71' : '#f1c40f' }}>{msg.reply ? 'ምላሽ ተሰጥቷል' : 'በመጠባበቅ ላይ'}</span></p>
               </div>
             ))}
