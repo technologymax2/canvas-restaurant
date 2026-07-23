@@ -606,37 +606,44 @@ app.post('/api/admin/send-new-message', async (req, res) => {
   }
 });
 
-// 📦 ደንበኛ ከካርት የሚልካቸውን ትዕዛዞች እና የክፍያ ስክሪንሾት መቀበያ ራውት
-app.post('/api/orders', async (req, res) => {
+// 📦 ደንበኛ ከካርት የሚልካቸውን ትዕዛዞች፣ የጠረጴዛ ቁጥር እና የስክሪንሾት ፋይል መቀበያ ራውት
+app.post('/api/orders', upload.single('paymentScreenshotFile'), async (req, res) => {
   try {
-    const { userId, customerName, customerEmail, items, totalAmount, paymentScreenshot } = req.body;
+    const { userId, customerName, customerEmail, items, totalAmount, tableNumber } = req.body;
+    let paymentScreenshotUrl = '';
 
-    if (!customerEmail || !items || items.length === 0) {
+    if (req.file) {
+      paymentScreenshotUrl = await uploadToImgBB(req.file.path);
+    }
+
+    if (!customerEmail || !items) {
       return res.status(400).json({ success: false, error: 'የምግብ ዝርዝር ወይም የኢሜይል መረጃ ጠፍቷል!' });
     }
 
-    if (!paymentScreenshot) {
-      return res.status(400).json({ success: false, error: 'እባክዎ የክፍያ ማረጋገጫ (ስክሪንሾት) ያያይዙ!' });
+    if (!paymentScreenshotUrl) {
+      return res.status(400).json({ success: false, error: 'እባክዎ የክፍያ ማረጋገጫ ስክሪንሾት ምስል ይምረጡ!' });
     }
 
-    // መረጃውን ከምግብ ዝርዝር ጋር በ Contact (ወይም Order) Schema ውስጥ እናስቀምጣለን
-    const orderDetailsString = items.map(i => `${i.name} (ብዛት: ${i.quantity || 1}) - ብር ${i.price}`).join(', ');
+    if (!tableNumber) {
+      return res.status(400).json({ success: false, error: 'እባክዎ የሚቀመጡበትን የጠረጴዛ ቁጥር (Table Number) ያስገቡ!' });
+    }
+
+    const orderDetailsString = JSON.parse(items).map(i => `${i.name} (ብዛት: ${i.quantity || 1}) - ብር ${i.price}`).join(', ');
     
     const newOrder = new Contact({
       name: customerName || 'ደንበኛ',
       email: customerEmail,
-      message: `የታዘዙ ምግቦች: [ ${orderDetailsString} ] | አጠቃላይ ዋጋ: ብር ${totalAmount} | የክፍያ ማረጋገጫ: ${paymentScreenshot}`,
-      status: 'በጥበቃ ላይ' // ሰራተኛው እስኪያየው ድረስ
+      message: `የጠረጴዛ ቁጥር: [ ${tableNumber} ] | የታዘዙ ምግቦች: [ ${orderDetailsString} ] | አጠቃላይ ዋጋ: ብር ${totalAmount} | የክፍያ ስክሪንሾት: ${paymentScreenshotUrl}`,
+      status: 'በጥበቃ ላይ'
     });
 
     await newOrder.save();
-    res.status(201).json({ success: true, message: 'ትዕዛዝዎ በስኬት ተልኳል!' });
+    res.status(201).json({ success: true, message: 'ትዕዛዝዎ እና የክፍያ ማረጋገጫዎ በስኬት ተልኳል!' });
   } catch (error) {
     console.error('ORDER ERROR:', error);
     res.status(500).json({ success: false, error: 'ትዕዛዙን ማስቀመጥ አልተቻለም' });
   }
 });
-
 // ==========================================
 // 7. የሰርቨር ጤንነት እና ማስነሻ (SERVER START)
 // ==========================================
