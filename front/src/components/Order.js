@@ -1,12 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import './Footer.css';
+import './Order.css';
 
 function Order({ user, API_BASE_URL }) {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // 🔄 የደንበኛውን ትዕዛዞች ከሰርቨር ማምጫ
   const fetchUserOrders = useCallback(async () => {
     if (!user || !user.email) {
       setLoading(false);
@@ -30,44 +29,74 @@ function Order({ user, API_BASE_URL }) {
 
   useEffect(() => {
     fetchUserOrders();
-    const interval = setInterval(fetchUserOrders, 5000); // በየ 5 ሰከንዱ ማደሻ
+    const interval = setInterval(fetchUserOrders, 5000);
     return () => clearInterval(interval);
   }, [fetchUserOrders]);
 
   if (!user) {
     return (
-      <div style={{ padding: '40px', textAlign: 'center', color: '#fff' }}>
-        <h2>⚠️ እባክዎ ትዕዛዞችዎን ለማየት መጀመሪያ ይግቡ (Login)</h2>
+      <div className="order-guest-container">
+        <div className="order-guest-card">
+          <h2>⚠️ እባክዎ ትዕዛዞችዎን ለማየት መጀመሪያ ይግቡ (Login)</h2>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="order-container" style={{ padding: '20px', maxWidth: '800px', margin: '0 auto', color: '#fff' }}>
-      <h2>📦 የእርስዎ ትዕዛዞች እና ምላሾች</h2>
-      
+    <div className="order-container">
+      <div className="order-header-box">
+        <h2>📦 የእርስዎ ትዕዛዞች እና የክፍያ ታሪክ</h2>
+        <p>የማዘዣዎትን ሁኔታ እና የሰራተኞችን ምላሽ እዚህ መከታተል ይችላሉ።</p>
+      </div>
+
       {loading ? (
-        <p>በመጫን ላይ...</p>
+        <div className="order-loading">⏳ በመጫን ላይ...</div>
       ) : error ? (
-        <p style={{ color: '#ff4444' }}>{error}</p>
+        <div className="order-error">{error}</div>
       ) : orders.length === 0 ? (
-        <p>እስካሁን ያስቀመጡት ትዕዛዝ የለም።</p>
+        <div className="order-empty">
+          <p>🛒 እስካሁን ያስቀመጡት ትዕዛዝ የለም።</p>
+        </div>
       ) : (
-        <div className="orders-list" style={{ display: 'grid', gap: '15px', marginTop: '20px' }}>
-          {orders.map((ord) => (
-            <div key={ord._id} style={{ background: '#161b22', padding: '15px', borderRadius: '8px', border: '1px solid #30363d' }}>
-              <p><strong>መልዕክትዎ/ትዕዛዝዎ:</strong> {ord.message}</p>
-              <p><strong>ሁኔታ (Status):</strong> <span style={{ color: ord.status === 'ምላሽ ተሰጥቷል' ? '#2ecc71' : '#f1c40f' }}>{ord.status}</span></p>
-              {ord.reply && (
-                <div style={{ background: '#21262d', padding: '10px', marginTop: '10px', borderRadius: '5px', borderLeft: '4px solid #2ecc71' }}>
-                  <p><strong>👑 የባለሙያ/የአድሚን ምላሽ:</strong> {ord.reply}</p>
+        <div className="orders-grid">
+          {orders.map((ord) => {
+            // የስታተስ ቀለሞችን ለመወሰን
+            let badgeClass = 'status-pending';
+            if (ord.status === 'Approved') badgeClass = 'status-approved';
+            else if (ord.status === 'Completed') badgeClass = 'status-completed';
+            else if (ord.status === 'Cancelled') badgeClass = 'status-cancelled';
+            else if (ord.status === 'ምላሽ ተሰጥቷል') badgeClass = 'status-replied';
+
+            return (
+              <div key={ord._id} className="order-card">
+                <div className="order-card-header">
+                  <span className="order-date">📅 {new Date(ord.date).toLocaleString()}</span>
+                  <span className={`order-status-badge ${badgeClass}`}>
+                    {ord.status || 'በጥበቃ ላይ'}
+                  </span>
                 </div>
-              )}
-              <small style={{ color: '#8b949e', display: 'block', marginTop: '8px' }}>
-                ቀን: {new Date(ord.date).toLocaleString()}
-              </small>
-            </div>
-          ))}
+
+                <div className="order-body">
+                  <p className="order-message-text">
+                    <strong>📝 ዝርዝር / መልዕክት:</strong> {ord.message}
+                  </p>
+
+                  {ord.reply && (
+                    <div className="order-reply-box">
+                      <p><strong>👑 የሰራተኛ/የአድሚን ምላሽ:</strong> {ord.reply}</p>
+                    </div>
+                  )}
+
+                  {ord.handledBy && (
+                    <p className="order-handled-by">
+                      👨‍🍳 ያስተካከለው ሰራተኛ: <span>{ord.handledBy}</span>
+                    </p>
+                  )}
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
