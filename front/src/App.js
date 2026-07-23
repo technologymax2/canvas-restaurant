@@ -138,9 +138,22 @@ function App() {
     }
   };
 
-  const addToCart = (item) => {
-    setCart([...cart, item]);
-    alert(`${item.name || item.title} ወደ ካርታ ተጨምሯል!`);
+const addToCart = (item) => {
+    setCart(prevCart => {
+      const existingIndex = prevCart.findIndex(cartItem => (cartItem._id || cartItem.id) === (item._id || item.id));
+      if (existingIndex > -1) {
+        // ምግብ ቀድሞውኑ ካርት ውስጥ ካለ ብዛቱን (quantity) እንጨምራለን
+        const updatedCart = [...prevCart];
+        updatedCart[existingIndex] = {
+          ...updatedCart[existingIndex],
+          quantity: (updatedCart[existingIndex].quantity || 1) + 1
+        };
+        return updatedCart;
+      } else {
+        // አዲስ ምግብ ከሆነ በ quantity: 1 እናስገባዋለን
+        return [...prevCart, { ...item, quantity: 1 }];
+      }
+    });
   };
 
   const handleLogout = () => {
