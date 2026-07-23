@@ -2,10 +2,17 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
+const multer = require('multer');
+const axios = require('axios');
+const FormData = require('form-data');
+const fs = require('fs');
 require('dotenv').config();
 
 const app = express();
 app.use(express.json());
+
+// 📦 ፋይሉን በጊዜያዊነት ኮምፒዩተሩ ላይ ለማስቀመጥ (Temp Storage for Multer)
+const upload = multer({ dest: 'uploads/' });
 
 // የ CORS አደረጃጀት - ማንኛውንም ግንኙነት እንዳያግድ ክፍት ተደርጓል
 app.use(cors({
@@ -22,6 +29,8 @@ mongoose.connect(MONGO_URI)
     seedFirstAdmin(); // ዳታቤዙ እንደተገናኘ የመጀመሪያውን አድሚን ይፈትሻል/ይፈጥራል
   })
   .catch(err => console.error('❌ የዳታቤዝ ግንኙነት ስህተት:', err));
+
+const IMGBB_API_KEY = "ebd592608f4dba1e8271bec8e920c408";
 
 // ==========================================
 // 1. የዳታቤዝ ሞዴሎች (SCHEMAS & MODELS)
@@ -57,7 +66,7 @@ const projectSchema = new mongoose.Schema({
 });
 const Project = mongoose.model('Project', projectSchema);
 
-// መ. የምግብ/ምናሌ ስኬማ (Food Schema - ከ FoodMenu እና OurFoods ጋር የሚጣጣም)
+// መ. የምግብ/ምናሌ ስኬማ (Food Schema - ከ ImgBB ሊንክ ጋር የሚጣጣም)
 const foodSchema = new mongoose.Schema({
   name: { type: String, required: true },
   description: { type: String, required: true },
@@ -91,23 +100,94 @@ async function seedFirstAdmin() {
   }
 }
 
-// 🍲 የምግብ ምናሌ ማስተዳደሪያ መስመሮች (FOOD ROUTES)
-app.post('/api/foods', async (req, res) => {
+// 🌐 ምስል ወደ ImgBB የሚልክ ረዳት ፋንክሽን (Helper Function)
+async function uploadToImgBB(filePath) {
   try {
-    const newFood = new Food(req.body);
+    const form = new FormData();
+    form.append('image', fs.createReadStream(filePath));
+
+    const response = await axios.post(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, form, {
+      headers: { ...form.getHeaders() }
+    });
+
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath); // ጊዜያዊ ፋይሉን እናጥፋዋለን
+    }
+
+    if (response.data && response.data.success) {
+      return response.data.data.url;
+    }
+    throw new Error('ImgBB upload failed');
+  } catch (error) {
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+    throw error;
+  }
+}
+
+// ==========================================
+// 🍲 የምግብ ማስተዳደሪያ መስመሮች (FOOD CRUD ROUTES)
+// ==========================================
+
+// 1. ምግብ መመዝገቢያ (CREATE) - ከ ImgBB ፋይል ሰቀላ ጋር
+app.post('/api/foods', upload.single('image'), async (req, res) => {
+  try {
+    const { name, description, price } = req.body;
+    let imageUrl = req.body.imageUrl || '';
+
+    if (req.file) {
+      imageUrl = await uploadToImgBB(req.file.path);
+    }
+
+    if (!imageUrl) {
+      return res.status(400).json({ success: false, error: 'እባክዎ የምግብ ምስል ይምረጡ!' });
+    }
+
+    const newFood = new Food({ name, description, price, imageUrl });
     await newFood.save();
     res.status(201).json({ success: true, message: 'ምግብ በተሳካ ሁኔታ ተጨምሯል!' });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ success: false, error: 'ምግብ መመዝገብ አልተቻለም' });
   }
 });
 
+// 2. ምግቦችን ማምጫ (READ)
 app.get('/api/foods', async (req, res) => {
   try {
     const foods = await Food.find().sort({ date: -1 });
     res.status(200).json({ success: true, foods: foods, menu: foods });
   } catch (error) {
     res.status(500).json({ success: false, error: 'ምግቦቹን ማምጣት አልተቻለም' });
+  }
+});
+
+// 3. ሰራተኛው/አድሚኑ ምግብ የሚያስተካክልበት መስመር (UPDATE)
+app.put('/api/employee/foods/:id', upload.single('image'), async (req, res) => {
+  try {
+    const { name, description, price } = req.body;
+    let updateData = { name, description, price };
+
+    if (req.file) {
+      updateData.imageUrl = await uploadToImgBB(req.file.path);
+    }
+
+    await Food.findByIdAndUpdate(req.params.id, updateData);
+    res.status(200).json({ success: true, message: 'ምግቡ ተስተካክሏል!' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, error: 'ምግቡን ማስተካከል አልተቻለም' });
+  }
+});
+
+// 4. ምግብ ማጥፊያ (DELETE - ለአድሚን እና ለሰራተኛ የሚሆን)
+app.delete('/api/employee/foods/:id', async (req, res) => {
+  try {
+    await Food.findByIdAndDelete(req.params.id);
+    res.status(200).json({ success: true, message: 'ምግቡ ተሰርዟል!' });
+  } catch (error) {
+    res.status(500).json({ success: false, error: 'ምግቡን ማጥፋት አልተቻለም' });
   }
 });
 
@@ -143,7 +223,6 @@ app.delete('/api/admin/projects/:id', async (req, res) => {
 // 3. የደህንነት እና መግቢያ መስመሮች (AUTH ROUTES)
 // ==========================================
 
-// ሀ. መደበኛ ደንበኞች መመዝገቢያ (SIGNUP)
 app.post('/api/auth/signup', async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -163,14 +242,10 @@ app.post('/api/auth/signup', async (req, res) => {
     res.status(201).json({ success: true, message: 'ምዝገባው በስኬት ተጠናቋል!' });
   } catch (error) {
     console.error("SIGNUP ERROR:", error);
-    res.status(500).json({
-      success: false,
-      error: error.message
-    });
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 
-// ለ. ተጠቃሚዎች መግቢያ (LOGIN) - (የታገዱ ሰዎችን ይከለክላል)
 app.post('/api/auth/login', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -267,6 +342,16 @@ app.get('/api/admin/messages', async (req, res) => {
   }
 });
 
+// ለአጠቃላይ መልዕክቶች ማምጫ (ለ Employee Dashboard ሪአክተር የሚጠቅም)
+app.get('/api/messages', async (req, res) => {
+  try {
+    const messages = await Contact.find().sort({ date: -1 });
+    res.status(200).json({ success: true, messages });
+  } catch (error) {
+    res.status(500).json({ success: false, error: 'መልዕክቶችን ማምጣት አልተቻለም' });
+  }
+});
+
 app.post('/api/admin/reply/:id', async (req, res) => {
   try {
     const { reply } = req.body;
@@ -295,10 +380,7 @@ app.post('/api/admin/add-employee', async (req, res) => {
     const existingUser = await User.findOne({ email });
 
     if (existingUser) {
-      return res.status(400).json({
-        success: false,
-        error: 'Employee already exists.'
-      });
+      return res.status(400).json({ success: false, error: 'Employee already exists.' });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -310,16 +392,10 @@ app.post('/api/admin/add-employee', async (req, res) => {
     });
 
     await employee.save();
-    res.status(201).json({
-      success: true,
-      message: 'Employee created successfully.'
-    });
+    res.status(201).json({ success: true, message: 'Employee created successfully.' });
   } catch (err) {
     console.error(err);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to create employee.'
-    });
+    res.status(500).json({ success: false, error: 'Failed to create employee.' });
   }
 });
 
@@ -349,8 +425,7 @@ app.get('/api/admin/users', async (req, res) => {
           });
         }
       }
-    }
-
+    } 
     res.status(200).json({ success: true, users: finalUsersList });
   } catch (error) {
     res.status(500).json({ success: false, error: 'የደንበኞችን ዝርዝር ማጠናቀር አልተቻለም' });
